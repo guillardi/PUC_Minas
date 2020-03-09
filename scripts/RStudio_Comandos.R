@@ -10,12 +10,6 @@ rm(list = ls())
 # Carregamento das Bibliotecas (library)
 library(tidyverse)
 library(tidyr)
-# library(devtools)
-# library(dplyr)
-# library(stringr)
-# library(lubridate)
-# library(nycflights13)
-# library(lubridate)
 
 # Define a pasta/diretório de trabalho
 setwd("C:/Users/Marcio/Dropbox (Pessoal)/TCC_PUCMinas/PUC_Minas")
@@ -34,14 +28,18 @@ patrimonio_novo <- patrimonio_novo %>% select(id, responsavel, cedente, sala, ni
 
 # Cria um dataset sumarizado por Responsável e Cedente (somatório das movimentações)
 # Arquivo com a contagem de movimentações por Responsável (quem recebeu o bem) e pelo cedente (quem cedeu o bem)
-patrimonio_novo_sumarizado <- patrimonio_novo %>% group_by(responsavel, cedente) %>% tally(name = "movimentacoes")
+patrimonio_sumarizado <- patrimonio_novo %>% group_by(responsavel, cedente) %>% tally(name = "movimentacoes")
 
 # Gravando arquivo sumarizado para Análise etc (CSV)
-write.csv(patrimonio_novo_sumarizado, file = ".\\data\\movimentacoesPGT_2_transformada_sumarizado.csv", fileEncoding = "UTF-8")
+write.csv(patrimonio_sumarizado, file = ".\\data\\movimentacoesPGT_2_transformada_sumarizado.csv", fileEncoding = "UTF-8")
+
+# Dividindo a coluna sala em duas: Sala e a descrição do setor/gabinete
 
 
 
-view(patrimonio_novo_sumarizado)
+str(patrimonio_sumarizado)
+
+view(patrimonio_sumarizado)
 view(patrimonio_lixo)
 View(patrimonio_select)
 view(patrimonio_teste)
@@ -355,3 +353,21 @@ patrimonio_select <- filter(patrimonio_novo, grepl("^0", sala))
 # forcats::fct_explicit_na(religion))
 # detach(package:tidyr)
 # install.packages(c("nycflights13", "gapminder", "Lahman", "lubridate"))
+
+# 
+# git add -A
+# git commit -m "A commit from my local computer"
+# git push
+# 
+# https://help.github.com/en/github/using-git/renaming-a-remote
+# 
+# patrimonio_novo_sumarizado %>% filter(movimentacoes > 1000) %>% ggplot() +
+#   geom_bar(mapping = aes(x = movimentacoes))
+# 
+# library(devtools)
+# library(dplyr)
+# library(stringr)
+# library(lubridate)
+# library(nycflights13)
+# library(lubridate)
+# 
