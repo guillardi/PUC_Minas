@@ -3,92 +3,145 @@
 # Projeto Final - TCC 
 # Aluno: Marcio Guillardi da Silva
 # 
-
 # Limpa a lista de objetos
+# 
 rm(list = ls())
-
+# 
 # Carregamento das Bibliotecas (library)
+#
 library(tidyverse)
 library(tidyr)
-
+#
 # Define a pasta/diretório de trabalho
+#
 setwd("C:/Users/Marcio/Dropbox (Pessoal)/TCC_PUCMinas/PUC_Minas")
-
+#
 # Lê o arquivo novo completo (novas colunas - último chamado - Campos como FACTOR)
+#
 patrimonio_novo <- read.csv(".\\data-raw\\movimentacoesPGT_2.csv", sep = ";", encoding = "UTF-8")
-
+#
 # Mudando a ordem das colunas e alterando os nomes de algumas delas
+#
 colnames(patrimonio_novo) <- c("id", "data", "interna", "retorno", "cedente", "responsavel", "nivelSuperior", "sala", "tombamento", "descricao",
                               "grupo", "inventario", "responsavelCadastro", "responsavelCiencia", "dataConfirmacaoRecebimento", "dataBaixa", 
                               "dataEncerramentoGarantia", "valorEntrada")
-
+# 
 # Alterando a ordem das colunas & Agrupando por Responsável e Cedente
+# 
 patrimonio_novo <- patrimonio_novo %>% select(id, responsavel, cedente, sala, nivelSuperior, tombamento, descricao, grupo, everything()) %>%
   arrange(responsavel, cedente)
-
+# 
 # Cria um dataset sumarizado por Responsável e Cedente (somatório das movimentações)
 # Arquivo com a contagem de movimentações por Responsável (quem recebeu o bem) e pelo cedente (quem cedeu o bem)
+# 
 patrimonio_sumarizado <- patrimonio_novo %>% group_by(responsavel, cedente) %>% tally(name = "movimentacoes")
-
-# Gravando arquivo sumarizado para Análise etc (CSV)
+# 
+# Cria um dataset sumarizado por Responsável (somatório das movimentações)
+# Arquivo com a contagem de movimentações por Responsável (quem recebeu o bem) e pelo cedente (quem cedeu o bem)
+# 
+patrimonio_sumarizado_responsavel <- patrimonio_novo %>% group_by(responsavel) %>% tally(name = "movimentacoes")
+# 
+# Gravando arquivo sumarizado para Análise etc (CSV) para o Power BI / Tableau
+# 
 write.csv(patrimonio_sumarizado, file = ".\\data\\movimentacoesPGT_2_transformada_sumarizado.csv", fileEncoding = "UTF-8")
+# 
+# Dividindo a coluna sala em três níveis de detalhamento: nº da sala + 3 níveis de detalhamento
+# 
+patrimonio_novo <- patrimonio_novo %>% separate(sala, c("sala", "nivel1","nivel2", "nivel3"), sep = "\\,\\s")
+# 
+# patrimonio_novo <- separate(data = patrimonio_novo, col = sala, into = c("sala", "nivel1", "nivel2", "nivel3"), sep = "\\,\\s")
+# 
+patrimonio_novo_ <- patrimonio_novo %>% mutate(nivel1 = if_else(sala == "ED. CNC" & !is.na(nivel3), 
+                                                                str_trim(nivel3),
+                                                                str_trim(nivel1)))
 
-# Dividindo a coluna sala em duas: Sala e a descrição do setor/gabinete
+
+patrimonio_novo_backup <- patrimonio_novo
+
+patrimonio_novo <- patrimonio_novo_backup
 
 
 
-str(patrimonio_sumarizado)
 
-view(patrimonio_sumarizado)
-view(patrimonio_lixo)
-View(patrimonio_select)
-view(patrimonio_teste)
-view(patrimonio_novo)
+patrimonio_novo_ <- patrimonio_novo_ %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2), 
+                                                              str_replace_all(nivel2, "SALA Nº", "SL. Nº"),
+                                                              if_else(sala != "ED. CNC",
+                                                                      str_trim(sala),
+                                                                      if_else(!is.na(nivel2), str_trim(nivel2), str_trim(sala)),
+                                                              missing = NULL)))
 
+patrimonio_novo_ <- patrimonio_novo_ %>% mutate(nivel2 = str_replace_all(nivel2,"14ºAND.","14º ANDAR"))
+
+
+str_extract("SL.904A", "SL\\.[0-9]+")
+# 
+# OU
+# 
+str_extract("SL.904A", "SL\\.[:digit:]+")
+
+
+!is.na(str_extract("SL.904A TESTE", "SL\\.[:digit:]+"))
+
+str_extract("SL.904A", "SL\\.[:digit:]+")
+str_locate("SL.904A", "SL\\.[0-9]+")
+
+s = "PleaseAddSpacesBetweenTheseWords"
+gsub("([a-z])([A-Z])", "\\1 \\2", s)
+.
+
+hw <- "Hadley Wickham"
+str_sub(hw, 1, 6)
+str_sub(hw, end = 6)
+str_sub(hw, 8, 14)
+str_sub(hw, 8)
+str_sub(hw, c(1, 8), c(6, 14))
+.
 
 # LENDO ARQUIVOS CSV
-patrimonio <- read.csv("C:\\Users\\marcio.silva.MPT\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\TODAS_MOVIMENTAÇÕES.csv", sep = ";", encoding = "UTF-8")
 patrimonio_novo <- read.csv("C:\\Users\\Marcio\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\movimentacoesPGT_2.csv", sep = ";", encoding = "UTF-8", stringsAsFactors = FALSE)
-patrimonio_novo <- read.csv("C:\\Users\\Marcio\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\movimentacoesPGT_2.csv", sep = ";", encoding = "UTF-8", as.is = TRUE)
+patrimonio_novo_as_is <- read.csv("C:\\Users\\Marcio.silva.mpt\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\movimentacoesPGT_2.csv", sep = ";", encoding = "UTF-8", as.is = TRUE)
 patrimonio_novo <- read.csv("C:\\Users\\Marcio\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\movimentacoesPGT_2_transformada.csv",sep = ",", encoding = "UTF-8")
 imdb <- readr::read_rds("C:\\Users\\marcio.silva.MPT\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\imdb.rds")
 
+
 # GRAVANDO ARQUIVOS CSV
-write.csv(patrimonio, file = "C:\\Users\\marcio.silva.MPT\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\Patrimonio_Planilha.csv")
-write.csv(patrimonio_novo, file = "C:\\Users\\marcio.\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\movimentacoesPGT_2_transformada.csv")
+write.csv(patrimonio_novo, file = "C:\\Users\\marcio.silva.MPT\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT_2_transformada.csv")
+#
 
 
-
-patrimonio_novo <- select(patrimonio_novo, id:valor.entrada)
+patrimonio_novo_teste <- select(patrimonio_novo, id:valor.entrada)
 
 
 # FILTRANDO O DATASET
 
 patrimonio_select <- patrimonio_novo %>% filter(patrimonio_novo, grepl("BENS NÃO LOCALIZADOS NA SALA", sala, fixed = TRUE))
-
-patrimonio_select <- filter(patrimonio_novo, sala == "ED. CNC" & is.na(nivel2))
-
+patrimonio_select <- filter(patrimonio_novo, sala == "ED. CNC" & !is.na(nivel2))
 patrimonio_select <- filter(patrimonio_novo, is.na(responsavel))
-
-patrimonio_select <- filter(patrimonio_novo, is.na(responsavel))
-
 patrimonio_select <- filter(patrimonio_novo, grepl("ROLL", sala, fixed = TRUE))
-
-patrimonio_select <- filter(patrimonio_novo, is.na(caracter))
-
 patrimonio_select <- filter(patrimonio_novo, grepl("º ANDAR", nivelSuperior, fixed = TRUE))
-
 patrimonio_select <- filter(patrimonio_novo, is.na(nivel2))
 
 view(patrimonio_select)
 
-patrimonio_teste <- patrimonio_select %>% mutate(sala = if_else(sala == "ED. CNC" & is.na(nivel2) & str_length(nivelSuperior) > 3, 
+patrimonio_teste <- patrimonio_select %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2), 
                                                                 str_sub(local, gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2]+2, str_length(local)),
                                                                 str_trim(sala), 
                                                                 missing = NULL),
-                                                 nivel2 = if_else(is.na(nivel2) & str_length(nivelSuperior) >3,
+                                                 nivel1 = if_else(is.na(nivel1) & str_length(nivelSuperior) >3,
+                                                                  str_sub(nivelSuperior, gregexpr(pattern = ",", nivelSuperior, fixed = TRUE)[[1]][1]+2, str_length(nivelSuperior)),
+                                                                  str_trim(nivel1), 
+                                                                  missing = NULL),
+                                                 caracter = gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2], 
+                                                 tamanho  = str_length(local))
+
+
+patrimonio_teste <- patrimonio_select %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel1) & str_length(nivelSuperior) > 3, 
+                                                                str_sub(local, gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2]+2, str_length(local)),
+                                                                str_trim(sala), 
+                                                                missing = NULL),
+                                                 nivel1 = if_else(is.na(nivel1) & str_length(nivelSuperior) >3,
                                                                 str_sub(nivelSuperior, gregexpr(pattern = ",", nivelSuperior, fixed = TRUE)[[1]][1]+2, str_length(nivelSuperior)),
-                                                                str_trim(nivel2), 
+                                                                str_trim(nivel1), 
                                                                 missing = NULL),
                                                  caracter = gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2], 
                                                  tamanho  = str_length(local))
@@ -146,7 +199,6 @@ patrimonio_lixo <- filter(patrimonio_novo, patrimonio_novo$sala == "SIM")
 
 gregexpr(pattern = ",", "ED. CNC, ANDAR TERREO, PORTARIA CNC", fixed = TRUE)[[1]][2] 
 
-gregexpr(pattern = ",", "ED. CNC, 07° ANDAR, BANHEIRO FEMININO", fixed = TRUE)[[1]][2]+2
 
 str_sub("ED. CNC, 06° ANDAR, COPA 06", gregexpr(pattern = ",", "ED. CNC, 06° ANDAR, COPA 06", fixed = TRUE)[[1]][2]+2, str_length("ED. CNC, 06° ANDAR, COPA 06"))
 
@@ -156,9 +208,9 @@ str_sub("ED. CNC, 06° ANDAR, COPA 06", gregexpr(pattern = ",", "ED. CNC, 06° A
 varStrSub <- "ED. CNC, 07° ANDAR, BANHEIRO FEMININO"
 
 str_sub(varStrSub, gregexpr(pattern = ",", varStrSub)[[1]][2]+2, str_length(varStrSub))
-
+# 
+# Para aplicar em: 
 # str_sub(local, gregexpr(pattern = ",", local)[[1]][2]+2, str_length(local))
-
 # -------------------------------------------------------------------------------------------------------
 
 
@@ -177,13 +229,7 @@ patrimonio_novo <-  patrimonio_novo %>% mutate(nivel2 = if_else(nivel1 == "ED. C
                                                nivel1 = if_else(nivel1 == "ED. CNC" & grepl("SALA", nivel3, fixed = TRUE), 
                                                                 str_trim(nivel3), nivel1))
 
-
 patrimonio_novo <-  patrimonio_novo %>% mutate(nivel1 = if_else(nivel1 == "BENS NÃO LOCALIZADOS NA" & nivel2 == "SALA Nº 501C", "BENS NÃO LOCALIZADOS NA SALA Nº 501C", nivel1), nivel2 = if_else(nivel1 == "BENS NÃO LOCALIZADOS NA SALA Nº 501C" & nivel2 == "SALA Nº 501C", "COORDENAÇÃO DE SUPORTE AO USUÁRIO	", nivel2))
-
-
-
-patrimonio_novo <- mutate(separate(data = patrimonio_novo, col = sala, into = c("nivel1", "nivel2", "nivel3", "nivel4", "nivel5"), sep = "\\,"))
-
 
 patrimonio_novo <- patrimonio_novo %>% mutate(nivel2 = if_else(is.na(nivel2), nivel1, nivel2, missing = 'NA'))
 
@@ -371,3 +417,45 @@ patrimonio_select <- filter(patrimonio_novo, grepl("^0", sala))
 # library(nycflights13)
 # library(lubridate)
 # 
+# Regular Expression Syntax:
+#   
+# Syntax  - Description
+# 
+# \\d       Digit, 0,1,2 ... 9
+# \\D       Not Digit
+# \\s       Space
+# \\S       Not Space
+# \\w       Word
+# \\W       Not Word
+# \\t       Tab
+# \\n       New line
+# ^         Beginning of the string
+# $         End of the string
+# \         Escape special characters, e.g. \\ is "\", \+ is "+"
+# |         Alternation match. e.g. /(e|d)n/ matches "en" and "dn"
+# •         Any character, except \n or line terminator
+# [ab]      a or b
+# [^ab]     Any character except a and b
+# [0-9]     All Digit
+# [A-Z]     All uppercase A to Z letters
+# [a-z]     All lowercase a to z letters
+# [A-z]     All Uppercase and lowercase a to z letters
+# i+        i at least one time
+# i*        i zero or more times
+# i?        i zero or 1 time
+# i{n}      i occurs n times in sequence
+# i{n1,n2}  i occurs n1 - n2 times in sequence
+# i{n1,n2}? non greedy match, see above example
+# i{n,}     i occures >= n times
+# [:alnum:] Alphanumeric characters: [:alpha:] and [:digit:]
+# [:alpha:] Alphabetic characters: [:lower:] and [:upper:]
+# [:blank:] Blank characters: e.g. space, tab
+# [:cntrl:] Control characters
+# [:digit:] Digits: 0 1 2 3 4 5 6 7 8 9
+# [:graph:] Graphical characters: [:alnum:] and [:punct:]
+# [:lower:] Lower-case letters in the current locale
+# [:print:] Printable characters: [:alnum:], [:punct:] and space
+# [:punct:] Punctuation character: ! " # $ % & ' ( ) * + , - . / : ; < = > ? @ [ \ ] ^ _ ` { | } ~
+# [:space:] Space characters: tab, newline, vertical tab, form feed, carriage return, space
+# [:upper:] Upper-case letters in the current locale
+# [:xdigit:]  Hexadecimal digits: 0 1 2 3 4 5 6 7 8 9 A B C D E F a b c d e f
