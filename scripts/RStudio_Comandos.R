@@ -11,6 +11,7 @@ rm(list = ls())
 #
 library(tidyverse)
 library(tidyr)
+library(lubridate)
 #
 # Define a pasta/diretório de trabalho
 #
@@ -20,16 +21,33 @@ setwd("C:/Users/Marcio/Dropbox (Pessoal)/TCC_PUCMinas/PUC_Minas")
 #
 patrimonio_novo <- read.csv(".\\data-raw\\movimentacoesPGT_2.csv", sep = ";", encoding = "UTF-8")
 # 
-# "inventario" == !NA: movimentação automática de grande quantidade de bens para ajuste de localidade de inventários patrimoniais
+# patrimonio_sumarizado_responsavel <- patrimonio_novo %>% group_by(responsavel) %>% tally(name = "movimentacoes")
+# 
+# patrimonio_sumarizado_responsavel %>% filter(movimentacoes > 100) %>% 
+#   ggplot(mapping = aes(x = responsavel, y = movimentacoes, colour=responsavel)) + 
+#   geom_point() + theme(axis.text.x=element_blank(), plot.title = element_text(hjust = 0.5)) +
+#   labs(y = "Qtde de Movimentaçõs (> 100)", x = "Responsável (Destino das Movimentações)") +
+#   ggtitle("Contagem de Movimentações")
+# 
+# "inventario" == !NA: movimentação automática de grande quantidade de bens para ajuste de localidade de inventário/levantamento patrimonial
 # 
 patrimonio_novo <- patrimonio_novo %>% filter(is.na(inventario))
+# 
+# patrimonio_sumarizado_responsavel <- patrimonio_novo %>% group_by(responsavel) %>% tally(name = "movimentacoes")
+# 
+# patrimonio_sumarizado_responsavel %>% filter(movimentacoes > 100) %>% 
+#   ggplot(mapping = aes(x = responsavel, y = movimentacoes, colour=responsavel)) + 
+#   geom_point() + theme(axis.text.x=element_blank(), plot.title = element_text(hjust = 0.5)) +
+#   labs(y = "Qtde de Movimentaçõs (> 100)", x = "Responsável (Destino das Movimentações)") +
+#   ggtitle("Contagem de Movimentações")
 #
 # Transformando em caracteres os atributos (colunas) "RESPONSAVEL" e "CEDENTE":
 # 
-# Quando o cedente e o responsável forem as mesmas pessoas indica que houve uma movimentação de ajuste de localidade ou uma mudança em grande escala.
-# Nesse caso as movimentações não serão computadas para fins estatísticos.
+# Quando o cedente e o responsável são  as mesmas pessoas indica (normalmente) que houve uma movimentação de ajuste de localidade ou 
+# uma mudança em grande escala. Neste caso as movimentações não serão computadas para fins estatísticos, pois permanece sob a responsabilidade
+# da mesma pessoa.
 # 
-# Erro para operação com um campo "factor": 'Error in Ops.factor(responsavel, cedente): level sets of factors are different'
+# Erro para operação/comparação com um campo "factor": 'Error in Ops.factor(responsavel, cedente): level sets of factors are different'
 # 
 patrimonio_novo <- mutate_at(patrimonio_novo, vars("responsavel", "cedente"), as.character)
 patrimonio_novo <- patrimonio_novo %>% filter(!(responsavel == cedente))
@@ -42,33 +60,29 @@ patrimonio_novo$dataConfirmacaoRecebimento = dmy_hm(patrimonio_novo$dataConfirma
 colnames(patrimonio_novo) <- c("id", "dataMovimentacao", "interna", "retorno", "cedente", "responsavel", "nivelSuperior", "sala", "tombamento",
                                "inventario", "responsavelCadastro", "dataConfirmacaoRecebimento")
 # 
-# str(patrimonio_novo)
-# 
-# 'data.frame':	26241 obs. of  12 variables:
-# $ id                        : int
-# $ dataMovimentacao          : Date, format: "2017-10-11"
-# $ interna                   : Factor w/ 1 level "S"
-# $ retorno                   : Factor w/ 1 level "N"
-# $ cedente                   : Factor w/ 326 levels
-# $ responsavel               : Factor w/ 365 levels
-# $ nivelSuperior             : Factor w/ 57 levels
-# $ sala                      : Factor w/ 506 levels
-# $ tombamento                : Factor w/ 14948 levels
-# $ inventario                : int
-# $ responsavelCadastro       : Factor w/ 9 levels
-# $ dataConfirmacaoRecebimento: POSIXct, format: "2017-11-08 16:54:00"
-# 
-# 
 # Alterando a ordem das colunas & Agrupando por Responsável e Cedente
 # 
 patrimonio_novo <- patrimonio_novo %>% select(id, responsavel, cedente, sala, nivelSuperior, tombamento,everything()) %>%
   arrange(responsavel, cedente)
 # 
-# Dividindo a coluna "SALA" em três níveis de detalhamento: nº da sala + 3 níveis
+# Padronização para a sala caso seja: "sala" == "PROTOCOLO GERAL" | "sala" == "SEÇÃO DE ARQUIVO"
+# 
+patrimonio_novo <- patrimonio_novo %>% mutate(sala = if_else(sala == "PROTOCOLO GERAL" | sala == "SEÇÃO DE ARQUIVO",
+                                                             paste(nivelSuperior, sala, sep = ", "),
+                                                             str_trim(sala)),
+                                              nivelSuperior = if_else(nivelSuperior == "SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO",
+                                                                      "ED. CNC. 08º ANDAR",
+                                                                      str_trim(nivelSuperior)))
+# 
+# Dividindo a coluna "SALA" em três níveis de detalhamento: nº da sala + 3 níveis (formato chr / caracter)
 # 
 # Descrição da SALA antes da alteração (exemplo/ID 14320): "ED. CNC, 15° ANDAR, SALA Nº 1507A, COORDENADOR DA ASSESSORIA DE PLANEJAMENTO E GESTÃO"
 # 
+# Após execução da operação abaixo: sala <- "ED. CNC"; nível1 <- "15° ANDAR"; nível2 <-  "SALA Nº 1507A"
+#                                                      nivel3 <- "COORDENADOR DA ASSESSORIA DE PLANEJAMENTO E GESTÃO"
+# 
 patrimonio_novo <- patrimonio_novo %>% separate(sala, c("sala", "nivel1","nivel2", "nivel3"), sep = "\\,\\s")
+patrimonio_novo <- mutate_at(patrimonio_novo, vars("sala", "nivel1", "nivel2", "nivel3"), as.factor)
 # 
 # patrimonio_novo <- separate(data = patrimonio_novo, col = sala, into = c("sala", "nivel1", "nivel2", "nivel3"), sep = "\\,\\s")
 # 
@@ -79,26 +93,28 @@ patrimonio_novo <- patrimonio_novo %>% mutate(nivel1 = if_else(sala == "ED. CNC"
                                                                 str_trim(nivel3),
                                                                 str_trim(nivel1)))
 # 
-# se sala == "ED. CNC" 'e' nivel2 'não igual' NA 'logo' sala <- nivel2 ~ transformando("SALA Nº" -> "SL. Nº")
+# se sala == "ED. CNC" 'e' nivel2 'não igual a' NA 'logo' sala <- nivel2 ~ transformando("SALA Nº" -> "SL. Nº")
 # 
 # Observe que nível2 pode conter "SALA Nº 1507A" 'quando' sala 'igual' "ED. CNC"
 # 
-patrimonio_novo <- patrimonio_novo %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2), 
-                                                              str_replace_all(nivel2, "SALA Nº", "SL. Nº"),
-                                                              if_else(sala != "ED. CNC",
-                                                                      str_trim(sala),
-                                                                      if_else(!is.na(nivel2), str_trim(nivel2), str_trim(sala)),
-                                                                      missing = NULL)))
+patrimonio_novo <- patrimonio_novo %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2),
+                                                             str_replace_all(nivel2, "SALA Nº", "SL. Nº"),
+                                                             if_else(sala != "ED. CNC",
+                                                                     str_trim(sala),
+                                                                     if_else(!is.na(nivel2), str_trim(nivel2), str_trim(sala)),
+                                                                     missing = NULL)))
+# 
+# 
 # 
 # Após essa transformação, o campo "sala" também indica: 
 # 
-# "BENS NÃO LOCALIZADOS...": bens não loalizados em diligências de inventários ou mudanças físicas de grande escala
+# "BENS NÃO LOCALIZADOS...": bens não loalizados em diligências de inventários ou mudanças físicas de grande escala (NÃO serão considerados!)
 # 
 patrimonio_novo <- patrimonio_novo %>% filter(!grepl("BENS NÃO LOCALIZADOS", sala, fixed = TRUE))
 # 
 # ... o campo "nivelSuperior" indica: 
 #
-# "DESFAZIMENTO..."- movimentação de grande quantidade de bens para doação
+# "DESFAZIMENTO..."- movimentação de grande quantidade de bens para doação (NÃO serão considerados!)
 # 
 patrimonio_novo <- patrimonio_novo %>% filter(!grepl("DESFAZIMENTO", nivelSuperior, fixed = TRUE))
 # 
@@ -108,6 +124,26 @@ patrimonio_novo <- patrimonio_novo %>% filter(!grepl("DESFAZIMENTO", nivelSuperi
 # 
 patrimonio_novo <- patrimonio_novo %>% filter(!grepl("UL VIRTUAL", sala, fixed = TRUE) &
                                                 !grepl("UL GERAL", sala, fixed = TRUE))
+#
+# Apagando movimentações temporárias de grande quantidade de bens (responsáveis temporários para conferência/incorporação de bens)
+#
+for (mpi in c(74883,74795,7500,75041,75092,75130,75841,75842,75933,76054,76101,76278,76282,76321,76366,76384,76388,76389,76390,82778)){
+  patrimonio_novo <- patrimonio_novo[which(!patrimonio_novo$id == mpi),]
+}
+"Levy Carlos Caixeta de Sa"
+"Daniela Heitor de Moura"
+"SL. 402SS"
+"SL. 0603B2"
+"SL. 0603B2"
+"SL. 0602"
+#
+# patrimonio_novo[37451,]                                                # Retorna a linha correspondente (na sequencia)
+# patrimonio_novo[[9]][patrimonio_novo$X.U.FEFF.id == "82778"]           # Retorna todos os registros encontrados no dataframe (df[[coluna]][id="busca"])
+# patrimonio_novo[match("76388",patrimonio_novo$X.U.FEFF.id),]           # Retorna o primeiro registro encontrado correspondente ao id informado
+# patrimonio_novo$tombamento[patrimonio_novo$X.U.FEFF.id == "76388"]     # Retorna uma lista com o número do tombamento dos registros correspondentes
+# patrimonio_novo$X.U.FEFF.id == "76388"                                 # Retorna uma lista de TRUE ou FALSE correspondente ao registro encontrado ou não
+# which(patrimonio_novo$X.U.FEFF.id == "76282")                          # Retorna o número da linha que contém o registro encontrado / id Movimentação = 76388
+#
 # 
 # Cria um dataset sumarizado por Responsável e Cedente (somatório das movimentações)
 # Arquivo com a contagem de movimentações por Responsável (quem recebeu o bem) e pelo cedente (quem cedeu o bem)
@@ -133,10 +169,8 @@ ggplot(data = patrimonio_sumarizado_responsavel) +
 patrimonio_sumarizado_responsavel %>% filter(movimentacoes > 100) %>% 
   ggplot(mapping = aes(x = responsavel, y = movimentacoes, colour=responsavel)) + 
     geom_point() + theme(axis.text.x = element_text(angle = 90), plot.title = element_text(hjust = 0.5)) +
-      labs(y = "Qtde de Movimentaçõs (> 100)", x = "Responsável (Destino das Movimentações)") +
-        ggtitle("Contagem de Movimentações: Responsável x Quantidade de Movimentações")
-
-
+      labs(y = "Qtde de Movimentaçõs", x = "Responsável (Destino das Movimentações)") +
+        ggtitle("Responsável x Quantidade de Movimentações", subtitle = "(* Mais de 100 Movimentações)")
 
 # 
 # Substituição de caracteres no campo "SALA"
@@ -177,11 +211,15 @@ gsub("^(SL.)([[:space:]])([^\\Nº])","SL. Nº\\2\\3", x)
 patrimonio_select <- filter(patrimonio_novo, !grepl("^(SL.)([[:space:]])", sala))
 patrimonio_select <- filter(patrimonio_novo, grepl(("^PROTOCOLO "), sala))
 patrimonio_select <- filter(patrimonio_novo, grepl(("^BENS NÃO LOCALIZADOS"), sala))
-patrimonio_select <- filter(patrimonio_novo, grepl("Gabriela Seredinicki Mendes", responsavel))
+patrimonio_select <- filter(patrimonio_novo, grepl("Daniela Heitor de Moura", responsavel))
 patrimonio_select <- filter(patrimonio_novo, grepl("Guillardi", responsavel))
 patrimonio_select <- filter(patrimonio_novo, grepl("Patricia Rambo", responsavel))
+patrimonio_select <- filter(patrimonio_novo, grepl("PROTOCOLO GERAL",sala))
+patrimonio_select <- filter(patrimonio_novo, grepl("PROTOCOLO GERAL",nivel3))
+patrimonio_select <- filter(patrimonio_novo, grepl("SEÇÃO DE ARQUIVO",nivel3))
+patrimonio_select <- filter(patrimonio_novo, grepl("ED. CNC",sala))
+patrimonio_select <- filter(patrimonio_novo, grepl("76388",X.U.FEFF.id))
 .
-
 
 patrimonio_novo_backup <- patrimonio_novo
 
