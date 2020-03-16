@@ -3,7 +3,7 @@
 # Projeto Final - TCC 
 # Aluno: Marcio Guillardi da Silva
 # 
-# Limpa a lista de objetos
+# Limpar a lista de objetos/dataframe para o Power BI/Tableau
 # 
 rm(list = ls())
 # 
@@ -19,17 +19,95 @@ setwd("C:/Users/Marcio/Dropbox (Pessoal)/TCC_PUCMinas/PUC_Minas")
 # Lê o arquivo novo completo (novas colunas - último chamado - Campos como FACTOR)
 #
 patrimonio_novo <- read.csv(".\\data-raw\\movimentacoesPGT_2.csv", sep = ";", encoding = "UTF-8")
+# 
+# "inventario" == !NA: movimentação automática de grande quantidade de bens para ajuste de localidade de inventários patrimoniais
+# 
+patrimonio_novo <- patrimonio_novo %>% filter(is.na(inventario))
 #
+# Transformando em caracteres os atributos (colunas) "RESPONSAVEL" e "CEDENTE":
+# 
+# Quando o cedente e o responsável forem as mesmas pessoas indica que houve uma movimentação de ajuste de localidade ou uma mudança em grande escala.
+# Nesse caso as movimentações não serão computadas para fins estatísticos.
+# 
+# Erro para operação com um campo "factor": 'Error in Ops.factor(responsavel, cedente): level sets of factors are different'
+# 
+patrimonio_novo <- mutate_at(patrimonio_novo, vars("responsavel", "cedente"), as.character)
+patrimonio_novo <- patrimonio_novo %>% filter(!(responsavel == cedente))
+patrimonio_novo <- mutate_at(patrimonio_novo, vars("tombamento", "responsavel", "cedente"), as.factor)
+patrimonio_novo$data = dmy(patrimonio_novo$data)
+patrimonio_novo$dataConfirmacaoRecebimento = dmy_hm(patrimonio_novo$dataConfirmacaoRecebimento)
+# 
 # Mudando a ordem das colunas e alterando os nomes de algumas delas
 #
-colnames(patrimonio_novo) <- c("id", "data", "interna", "retorno", "cedente", "responsavel", "nivelSuperior", "sala", "tombamento", "descricao",
-                              "grupo", "inventario", "responsavelCadastro", "responsavelCiencia", "dataConfirmacaoRecebimento", "dataBaixa", 
-                              "dataEncerramentoGarantia", "valorEntrada")
+colnames(patrimonio_novo) <- c("id", "dataMovimentacao", "interna", "retorno", "cedente", "responsavel", "nivelSuperior", "sala", "tombamento",
+                               "inventario", "responsavelCadastro", "dataConfirmacaoRecebimento")
+# 
+# str(patrimonio_novo)
+# 
+# 'data.frame':	26241 obs. of  12 variables:
+# $ id                        : int
+# $ dataMovimentacao          : Date, format: "2017-10-11"
+# $ interna                   : Factor w/ 1 level "S"
+# $ retorno                   : Factor w/ 1 level "N"
+# $ cedente                   : Factor w/ 326 levels
+# $ responsavel               : Factor w/ 365 levels
+# $ nivelSuperior             : Factor w/ 57 levels
+# $ sala                      : Factor w/ 506 levels
+# $ tombamento                : Factor w/ 14948 levels
+# $ inventario                : int
+# $ responsavelCadastro       : Factor w/ 9 levels
+# $ dataConfirmacaoRecebimento: POSIXct, format: "2017-11-08 16:54:00"
+# 
 # 
 # Alterando a ordem das colunas & Agrupando por Responsável e Cedente
 # 
-patrimonio_novo <- patrimonio_novo %>% select(id, responsavel, cedente, sala, nivelSuperior, tombamento, descricao, grupo, everything()) %>%
+patrimonio_novo <- patrimonio_novo %>% select(id, responsavel, cedente, sala, nivelSuperior, tombamento,everything()) %>%
   arrange(responsavel, cedente)
+# 
+# Dividindo a coluna "SALA" em três níveis de detalhamento: nº da sala + 3 níveis
+# 
+# Descrição da SALA antes da alteração (exemplo/ID 14320): "ED. CNC, 15° ANDAR, SALA Nº 1507A, COORDENADOR DA ASSESSORIA DE PLANEJAMENTO E GESTÃO"
+# 
+patrimonio_novo <- patrimonio_novo %>% separate(sala, c("sala", "nivel1","nivel2", "nivel3"), sep = "\\,\\s")
+# 
+# patrimonio_novo <- separate(data = patrimonio_novo, col = sala, into = c("sala", "nivel1", "nivel2", "nivel3"), sep = "\\,\\s")
+# 
+# 
+# Padronização da sala e dos níveis de detalhamento da sala (nivel1 <- nivel3)
+# 
+patrimonio_novo <- patrimonio_novo %>% mutate(nivel1 = if_else(sala == "ED. CNC" & !is.na(nivel3), 
+                                                                str_trim(nivel3),
+                                                                str_trim(nivel1)))
+# 
+# se sala == "ED. CNC" 'e' nivel2 'não igual' NA 'logo' sala <- nivel2 ~ transformando("SALA Nº" -> "SL. Nº")
+# 
+# Observe que nível2 pode conter "SALA Nº 1507A" 'quando' sala 'igual' "ED. CNC"
+# 
+patrimonio_novo <- patrimonio_novo %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2), 
+                                                              str_replace_all(nivel2, "SALA Nº", "SL. Nº"),
+                                                              if_else(sala != "ED. CNC",
+                                                                      str_trim(sala),
+                                                                      if_else(!is.na(nivel2), str_trim(nivel2), str_trim(sala)),
+                                                                      missing = NULL)))
+# 
+# Após essa transformação, o campo "sala" também indica: 
+# 
+# "BENS NÃO LOCALIZADOS...": bens não loalizados em diligências de inventários ou mudanças físicas de grande escala
+# 
+patrimonio_novo <- patrimonio_novo %>% filter(!grepl("BENS NÃO LOCALIZADOS", sala, fixed = TRUE))
+# 
+# ... o campo "nivelSuperior" indica: 
+#
+# "DESFAZIMENTO..."- movimentação de grande quantidade de bens para doação
+# 
+patrimonio_novo <- patrimonio_novo %>% filter(!grepl("DESFAZIMENTO", nivelSuperior, fixed = TRUE))
+# 
+# ... o campo "sala" indica: 
+#
+# "UL VIRTUAL" e "UL GERAL"- movimentação de grande quantidade de bens para doação ou incorporação para posterior distribuição
+# 
+patrimonio_novo <- patrimonio_novo %>% filter(!grepl("UL VIRTUAL", sala, fixed = TRUE) &
+                                                !grepl("UL GERAL", sala, fixed = TRUE))
 # 
 # Cria um dataset sumarizado por Responsável e Cedente (somatório das movimentações)
 # Arquivo com a contagem de movimentações por Responsável (quem recebeu o bem) e pelo cedente (quem cedeu o bem)
@@ -44,50 +122,117 @@ patrimonio_sumarizado_responsavel <- patrimonio_novo %>% group_by(responsavel) %
 # Gravando arquivo sumarizado para Análise etc (CSV) para o Power BI / Tableau
 # 
 write.csv(patrimonio_sumarizado, file = ".\\data\\movimentacoesPGT_2_transformada_sumarizado.csv", fileEncoding = "UTF-8")
+write.csv(patrimonio_novo, file = "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT_2_transformada.csv")
+
+
+ggplot(data = patrimonio_sumarizado_responsavel) + 
+  geom_point(mapping = aes(x = responsavel, y = movimentacoes)) + theme(axis.text.x=element_blank(),
+                                                                        axis.ticks.x=element_blank()) +
+  labs(y = "Quantidade de Movimentaçõs", x = "Responsável (Destino das Movimentações)")
+
+patrimonio_sumarizado_responsavel %>% filter(movimentacoes > 100) %>% 
+  ggplot(mapping = aes(x = responsavel, y = movimentacoes, colour=responsavel)) + 
+    geom_point() + theme(axis.text.x = element_text(angle = 90), plot.title = element_text(hjust = 0.5)) +
+      labs(y = "Qtde de Movimentaçõs (> 100)", x = "Responsável (Destino das Movimentações)") +
+        ggtitle("Contagem de Movimentações: Responsável x Quantidade de Movimentações")
+
+
+
 # 
-# Dividindo a coluna sala em três níveis de detalhamento: nº da sala + 3 níveis de detalhamento
+# Substituição de caracteres no campo "SALA"
 # 
-patrimonio_novo <- patrimonio_novo %>% separate(sala, c("sala", "nivel1","nivel2", "nivel3"), sep = "\\,\\s")
+# sala == "SL.904A" -> "SL. Nº 904A"
 # 
-# patrimonio_novo <- separate(data = patrimonio_novo, col = sala, into = c("sala", "nivel1", "nivel2", "nivel3"), sep = "\\,\\s")
+patrimonio_novo <- patrimonio_novo %>% mutate(sala = gsub("^(SL.)([^[:space:]])","\\1 Nº \\2", sala))
 # 
-patrimonio_novo_ <- patrimonio_novo %>% mutate(nivel1 = if_else(sala == "ED. CNC" & !is.na(nivel3), 
-                                                                str_trim(nivel3),
-                                                                str_trim(nivel1)))
+# sala == "SALA 604B1 RECEPÇÃO DA TI" -> "SL. Nº 604B1 RECEPÇÃO DA TI"
+# 
+patrimonio_novo <- patrimonio_novo %>% mutate(sala = gsub("(^SALA\\s{1})([\\Nº])","SL. \\2", sala))
+# 
+# sala == "SALA Nº 604B1 RECEPÇÃO DA TI" -> "SL. Nº 604B1 RECEPÇÃO DA TI"
+# 
+patrimonio_novo <- patrimonio_novo %>% mutate(sala = gsub("^(SL.)([^[:space:]])","\\1 Nº \\2", sala))
+# 
+# sala == "SL. 904A" -> "SL. Nº 904A"
+# 
+patrimonio_novo <- patrimonio_novo %>% mutate(sala = gsub("^(SL.)([[:space:]])([^\\Nº])","SL. Nº\\2\\3", sala))
+
+
+x <- "SALA 604B1 RECEPÇÃO DA TI"
+gsub("(^SALA\\s{1})([^\\Nº])","SL. Nº \\2", x)
+
+x <- "SALA N° 801"
+gsub("(^SALA\\s{1})([\\Nº])","SL. \\2", x)
+
+x <- "SALA Nº 604B1 RECEPÇÃO DA TI"
+gsub("(^SALA\\s{1})([\\Nº])","SL. \\2", x)
+
+x <- "SL. Nº 904A"
+gsub("^(SL.)\\s+","\\1 Nº ", x)
+
+x <- "SL. 904A"
+gsub("^(SL.)([[:space:]])([^\\Nº])","SL. Nº\\2\\3", x)
+
+
+patrimonio_select <- filter(patrimonio_novo, !grepl("^(SL.)([[:space:]])", sala))
+patrimonio_select <- filter(patrimonio_novo, grepl(("^PROTOCOLO "), sala))
+patrimonio_select <- filter(patrimonio_novo, grepl(("^BENS NÃO LOCALIZADOS"), sala))
+patrimonio_select <- filter(patrimonio_novo, grepl("Gabriela Seredinicki Mendes", responsavel))
+patrimonio_select <- filter(patrimonio_novo, grepl("Guillardi", responsavel))
+patrimonio_select <- filter(patrimonio_novo, grepl("Patricia Rambo", responsavel))
+.
 
 
 patrimonio_novo_backup <- patrimonio_novo
 
 patrimonio_novo <- patrimonio_novo_backup
 
+txt <- c("arm","foot","lefroo", "bafoobar")
+if(length(i <- grep("foo", txt)))
+  cat("'foo' appears at least once in\n\t", txt, "\n")
+i # 2 and 4
+txt[i]
 
 
+# BENS NÃO LOCALIZADOS
+# UL VIRTUAL
+# cedente == responsavel
 
-patrimonio_novo_ <- patrimonio_novo_ %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2), 
-                                                              str_replace_all(nivel2, "SALA Nº", "SL. Nº"),
-                                                              if_else(sala != "ED. CNC",
-                                                                      str_trim(sala),
-                                                                      if_else(!is.na(nivel2), str_trim(nivel2), str_trim(sala)),
-                                                              missing = NULL)))
+
 
 patrimonio_novo_ <- patrimonio_novo_ %>% mutate(nivel2 = str_replace_all(nivel2,"14ºAND.","14º ANDAR"))
 
 
+str_extract("SL.904A", "SL\\.[:digit:]{1}")  # [1] "SL.9"  : Apenas com o primeiro dígito numérico
+str_extract("SL.904A", "SL\\.[:digit:]+")    # [1] "SL.904": Todos os dígitos (núméricos)
+str_extract("SL.904A", "SL\\.[:alnum:]+")    # [1] "SL.904": Todos os dígitos (núméricos) e alfabéticos (letras)
 str_extract("SL.904A", "SL\\.[0-9]+")
-# 
-# OU
-# 
-str_extract("SL.904A", "SL\\.[:digit:]+")
-
-
+str_extract("SL.904A", "^(SL.)([^[:space:]])([[:alnum:]]+)")
 !is.na(str_extract("SL.904A TESTE", "SL\\.[:digit:]+"))
-
-str_extract("SL.904A", "SL\\.[:digit:]+")
+!is.na(str_extract("SL. 904A TESTE", "^(SL.)"))
 str_locate("SL.904A", "SL\\.[0-9]+")
+
+
+
+# Utilizar essas funções para substituição de caracteres
+
+x <- "SL. 904A"
+x <- gsub("^(SL.)\\s+","\\1 Nº ", x)
+
+x <- "SL.904A"
+gsub("^(SL.)\\S","\\1 Nº ", x)
+gsub("^(SL.)([^[:space:]])","\\1 Nº \\2", x)
+
+
+# Exemplos
 
 s = "PleaseAddSpacesBetweenTheseWords"
 gsub("([a-z])([A-Z])", "\\1 \\2", s)
-.
+
+x <- "<dd>Found on January 1, 2007</dd>"
+gsub("<dd>[F|f]ound on |</dd>", "", x)
+
+c(1:10,"D")
 
 hw <- "Hadley Wickham"
 str_sub(hw, 1, 6)
@@ -105,7 +250,7 @@ imdb <- readr::read_rds("C:\\Users\\marcio.silva.MPT\\Dropbox (Pessoal)\\PGT COS
 
 
 # GRAVANDO ARQUIVOS CSV
-write.csv(patrimonio_novo, file = "C:\\Users\\marcio.silva.MPT\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT_2_transformada.csv")
+write.csv(patrimonio_novo, file = "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT_2_transformada.csv")
 #
 
 
@@ -253,18 +398,12 @@ patrimonio_novo <- patrimonio_novo %>% mutate(nivel2 = if_else(is.na(nivel2), ni
 # 
 # ************** MAIS SOBRE R **********************
   
-ggplot(data = sumarizado) + 
-  geom_point(mapping = aes(x = Responsável, y = n))
+ggplot(data = patrimonio_sumarizado_responsavel) + 
+  geom_point(mapping = aes(x = responsavel, y = movimentacoes)) + theme(axis.text.x=element_blank(),
+                                                                        axis.ticks.x=element_blank())
 
-
-sumarizado_sala <- patrimonio %>% subset(Sala != "NA") %>% group_by(Sala) %>% tally()
-
-sumarizado_sala %>% ggplot(mapping = aes(x = Sala, y = n)) + 
-  geom_point()
-
-ggplot(data = mpg, aes(x = displ, y = hwy, color = class)) + 
-  +     geom_point() + labs(x = "Cilindradas", y = "Milhas/galão")
-
+patrimonio_sumarizado_responsavel %>% filter(movimentacoes > 50) %>% ggplot(mapping = aes(x = responsavel, y = movimentacoes)) + 
+  geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 # ARRANGE com alteração do NOME DAS COLUNAS
@@ -382,7 +521,10 @@ if_else(resultado[[1]][1]>0, "Encontrado", "Não Encontrado")
 # num_range("x", 1:3): Corresponde x1, x2e x3
 # 
 
+patrimonio_select <- patrimonio_novo$dataConfirmacaoRecebimento[patrimonio_novo$X.U.FEFF.id == 17478]
 patrimonio_select <- filter(patrimonio_novo, grepl("BENS NÃO LOCALIZADOS NA SALA", sala, fixed = TRUE))
+patrimonio_select <- filter(patrimonio_novo, grepl("LOTE", sala, fixed = TRUE))
+patrimonio_select <- filter(patrimonio_novo, grepl("DESFAZIMENTO", nivelSuperior, fixed = TRUE))
 patrimonio_select <- filter(patrimonio_novo, grepl("^0", sala))
 
 patrimonio_novo$sala[patrimonio_novo$sala == "0602"] <- "602"
@@ -400,6 +542,8 @@ patrimonio_select <- filter(patrimonio_novo, grepl("^0", sala))
 # detach(package:tidyr)
 # install.packages(c("nycflights13", "gapminder", "Lahman", "lubridate"))
 
+# 
+# Comandos GIT para gravar os dados no Github
 # 
 # git add -A
 # git commit -m "A commit from my local computer"
@@ -459,3 +603,5 @@ patrimonio_select <- filter(patrimonio_novo, grepl("^0", sala))
 # [:space:] Space characters: tab, newline, vertical tab, form feed, carriage return, space
 # [:upper:] Upper-case letters in the current locale
 # [:xdigit:]  Hexadecimal digits: 0 1 2 3 4 5 6 7 8 9 A B C D E F a b c d e f
+# 
+# 
