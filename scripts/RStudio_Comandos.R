@@ -190,25 +190,67 @@ mpi <- mpi %>% filter(!grepl("UL VIRTUAL", sala, fixed = TRUE) &
 # 
 mpi <- filter(mpi, !(tombamento >= 37827 &        # Dentro da faixa... 32827 ~ 38623
                        tombamento <= 38623 &
-                       (responsavel == "Daniela Heitor de Moura" | responsavel == "Levy Carlos Caixeta de Sa" | responsavel == "Marcio Guillardi da Silva")))
+                       (responsavel == "Daniela Heitor de Moura" |
+                          responsavel == "Levy Carlos Caixeta de Sa" |
+                          responsavel == "Marcio Guillardi da Silva")))
 #
 # (15.139 Registros / 1.537 Registros ignorados)
 #
 # mpi_teste <- mpi[which(!(mpi$tombamento >= 37827 &
 #                             mpi$tombamento <= 38623 &
-#                             (mpi$responsavel == "Levy Carlos Caixeta de Sa" | mpi$responsavel == "Daniela Heitor de Moura" | mpi$responsavel == "Marcio Guillardi da Silva"))
+#                             (mpi$responsavel == "Levy Carlos Caixeta de Sa" |
+#                              mpi$responsavel == "Daniela Heitor de Moura" |
+#                              mpi$responsavel == "Marcio Guillardi da Silva"))
 #                         ),]
 #
 #
-# Também houve aquisição e incorporação de painéis divisórios individuais (baias) para todas as salas...
-# ... esses bens já existiam e foram incorporados aos bens patrimoniais da PGT.
+# Aquisição e incorporação de painéis divisórios individuais (baias) para todas as salas...
+# ... esses bens já existiam e foram incorporados aos bens patrimoniais da PGT e transferidos
+# para os gestores responsáveis pelas salas/setor/diretorias.
 # 
 mpi <- filter(mpi, !(tombamento >= 36843 &        # Dentro da faixa... 36843 ~ 37817
                        tombamento <= 37817 &
                        cedente == "Levy Carlos Caixeta de Sa"))
 #
 # (14247 Registros / 892 Registros ignorados )
+#
+#
+# Aquisição de livros para a Biblioteca. As transferências foram efetivadas pelos gestores do Setor de Patrimônio.
 # 
+# Selecionando aquelas MPIs que movimentaram mais de 10 itens, aumentando a margem de confiança nos dados. 
+# 
+mpi_count <- mpi %>% filter(responsavel == "Vanessa Christina Alves Fernandes" & nivel1 == "BIBLIOTECA LIVROS - CDI" &
+                              (cedente == "Levy Carlos Caixeta de Sa" | 
+                                 cedente == "Ricardo Vaz Gomes Bastos" | 
+                                 cedente == "Andrea Regina da Silva Diana")) %>%
+  count(id, name = "total", sort = TRUE) %>% filter(total > 10) %>% select(id)
+# 
+#  mpi_count <- mpi_teste[[1]]
+#  mpi_teste <- mpi %>% filter(!(id %in% mpi_count)) # vector
+# 
+mpi <- mpi %>% filter(!(id %in% mpi_count$id)) # atomic vector
+# 
+# view(mpi_teste_ <- mpi %>% filter(id=="66138"))
+# 
+# 68819   310
+# 48530   140
+# 49798   127
+# 34510   101
+# 30358    58
+# 28094    57
+# 11746    50
+# 11747    45
+# 37830    30
+# 37728    24
+# 34506    22
+# 66138    22
+# 36396    16
+# 38790     1
+# 70247     1
+# 
+# mpi_teste <- mpi %>% filter(id %in% c(68819, 34510, 30358, 28094, 11746,11747,37830,37728,34506,66138,36396,49875))
+#
+ 
 # mpi_sumarizado <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
 # 
 # (351 Observações)
@@ -608,14 +650,15 @@ mpi <- mpi%>% mutate(descricaoBem = bensPatrimoniais$descricao[match(tombamento,
 # ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK 
 #
 
-
-patrimonio_novo <- patrimonio_novo %>% mutate(nivelSuperior = str_replace_all(nivelSuperior,"SANITÁRIOS, VESTIÁRIOS E COPA","SANITÁRIOS E COPA"))
+mpiCountId_ <- mpi %>% count(id, name = "total", sort = TRUE)
 
 
 
 
 # 
 # Alguns códigos...
+#
+mpi_teste <- mpi %>% mutate(nivelSuperior = str_replace_all(nivelSuperior,"SANITÁRIOS, VESTIÁRIOS E COPA","SANITÁRIOS E COPA"))
 # 
 mpi_teste <- mpi$cedente[mpi$id == "14320"]
 # 
