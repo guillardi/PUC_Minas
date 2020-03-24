@@ -60,10 +60,10 @@ mpi <- mpi %>% filter(!(responsavel == cedente))
 colnames(mpi) <- c("id", "dataMovimentacao", "interna", "retorno", "cedente", "responsavel", "nivelSuperior", "sala", "tombamento",
                                "inventario", "responsavelCadastro", "dataConfirmacaoRecebimento")
 # 
-# Alterando a ordem das colunas & Agrupando por Responsável e Cedente
+# Alterando a ordem das colunas & Agrupando por Responsável, Cedente e id
 # 
 mpi <- mpi %>% select(id, responsavel, cedente, sala, nivelSuperior, tombamento,everything()) %>%
-  arrange(responsavel, cedente)
+  arrange(responsavel, cedente, id)
 # 
 # Operação para padronização/ajuste da sala, caso: "sala" == "PROTOCOLO GERAL" ou "sala" == "SEÇÃO DE ARQUIVO"
 # (* Houve um erro na classificação/descrição da árvore de dependência entre as salas e seu nível superior) 
@@ -505,6 +505,21 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SL. Nº 802 DEOF-DEP.EXEC. ORÇA
 # mpi_teste <- mpi %>% filter(sala == "SL. Nº 802")
 # 
 # 
+# mpi$sala[mpi$sala == "0602"]  <- "602"      # De forma "manual", um por um...
+# mpi$sala[mpi$sala == "0101C"] <- "101C"
+# mpi$sala[mpi$sala == "0603B"] <- "603B"
+# 
+# x <- "SL. Nº 0603"
+# gsub("^(SL\\.\\s)(Nº\\s)(0)([^0])","\\1\\2\\4", x)
+#                                     SL. Nº 603
+# 
+# mpi_teste <- mpi %>% filter(grepl("^(SL\\.\\s)(Nº\\s)(0)([^0])", sala))
+# 
+mpi <- mpi %>% mutate(sala = if_else(grepl("^(SL\\.\\s)(Nº\\s)(0)([^0])", sala),
+                                     gsub("^(SL\\.\\s)(Nº\\s)(0)([^0])","\\1\\2\\4", sala),
+                                     sala)) # %>% filter(grepl("^(SL\\.\\s)(Nº\\s)(603)", sala))
+# 
+# 
 # Padronizando a Descrição dos Gabinetes dos Procuradores (Assessorias e Gabinetes)
 # 
 mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASS DR", nivel1),
@@ -523,7 +538,7 @@ mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASS. GAB DR", nivel1),
                                        str_replace_all(nivel1, "ASS\\. GAB DR", "ASSESSORIA DR"),
                                        nivel1)) 
 # 
-mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASS GAB DR\.", nivel1),
+mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASS GAB DR\\.", nivel1),
                                        str_replace_all(nivel1, "ASS GAB DR\\.", "ASSESSORIA DR"),
                                        nivel1)) 
 # 
@@ -550,23 +565,6 @@ mpi <- mpi %>% mutate(nivel1 = if_else(grepl("GABINETE DRA\\.", nivel1),
 # mpi_teste <- mpi %>% filter(grepl("JOSE NETO", nivel1))
 # 
 # 
-# mpi <- mutate_at(mpi, vars("sala"), as.factor); str(mpi); mpi <- mutate_at(mpi, vars("sala"), as.character)
-# 
-# $ sala: Factor w/ 368 levels
-# 
-# mpi_sumarizado <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
-# 
-# Gravando arquivo sumarizado para Análise etc (CSV) para o Power BI / Tableau
-# 
-# write.csv(mpi_sumarizado, file = ".\\data\\mpi_Sumarizado.csv", fileEncoding = "UTF-8")
-# write.csv(mpi, file = "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", fileEncoding = "UTF-8")
-# 
-# Pacote library(readr)
-# 
-# write_excel_csv2(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
-# 
-# write_csv(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv")
-# 
 # Leitura do arquivo geral de bens (patrimonios) para realizar a junção (left_join) dos arquivos (Recuperar a Descrição) 
 # 
 bensPatrimoniais <- read.csv(".\\data-raw\\BensPorGrupo.csv", sep = ";", encoding = "UTF-8", stringsAsFactors = FALSE)
@@ -580,346 +578,168 @@ bensPatrimoniais <- mutate_at(bensPatrimoniais, vars("tombamento"), as.integer)
 # Inserindo a descrição do bem patrimonial a partir do arquivo geral de bens
 # 
 mpi <- mpi%>% mutate(descricaoBem = bensPatrimoniais$descricao[match(tombamento, bensPatrimoniais$tombamento)])
+#
+#
+# mpi <- mutate_at(mpi, vars("sala"), as.factor); str(mpi); mpi <- mutate_at(mpi, vars("sala"), as.character)
+# 
+# sala: Factor w/ 368 levels 
+# 
+# Transformando campos data...
+# 
+# mpi = dmy(mpi$data)
+# mpi$dataConfirmacaoRecebimento = dmy_hm(mpi$dataConfirmacaoRecebimento)
+#
+# 
+# mpi_sumarizado <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
+# 
+# Gravando arquivo sumarizado para Análise etc (CSV) para o Power BI / Tableau
+# 
+# write.csv(mpi_sumarizado, file = ".\\data\\mpi_Sumarizado.csv", fileEncoding = "UTF-8")
+# write.csv(mpi, file = "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", fileEncoding = "UTF-8")
+# 
+# Pacote library(readr)
+# 
+# write_excel_csv2(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+# 
+# write_csv(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv")
+#
 # 
 # ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK 
 # ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK 
+#
+
+
+patrimonio_novo <- patrimonio_novo %>% mutate(nivelSuperior = str_replace_all(nivelSuperior,"SANITÁRIOS, VESTIÁRIOS E COPA","SANITÁRIOS E COPA"))
+
+
+
+
 # 
-
-
+# Alguns códigos...
 # 
-# FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO 
-# FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO FAZER ESSA MUTAÇAO 
-
-# OK OK OK
-
-x <- "0602"
-grepl("(^([\\0]{1}))([1-9])+", x) 
-gsub("(^([\\0]{1}))([1-9])+","Bloco 1 \\2", x)
-
-
-patrimonio_novo$sala[patrimonio_novo$sala == "0602"] <- "602"
-patrimonio_novo$sala[patrimonio_novo$sala == "0101C"] <- "101C"
-patrimonio_novo$sala[patrimonio_novo$sala == "0603B"] <- "603B"
-
-
-mpi_teste <- mpi %>% filter(grepl("([SL. Nº])(AND)(\\.)+", nivelSuperior))
-
-
-
-x <- "ED. CNC. 08º ANDAR 48"
-gsub("^(ED. CNC, )", "CNC, \\2", x)
-
-
+mpi_teste <- mpi$cedente[mpi$id == "14320"]
+# 
+# chr [1:2] "Andre Luis Itacarambi Rego" "Andre Luis Itacarambi Rego"
+# 
+mpi_teste <- mpi[which(mpi$id == "14320"),"cedente"]
+# 
+# chr [1:2] "Andre Luis Itacarambi Rego" "Andre Luis Itacarambi Rego"
+# 
+mpi_teste <- mpi[which(mpi$id == "14320"),]
+# 
+# 'data.frame':	2 obs. of  16 variables:
+# $ id                        : int  14320 14320
+# $ responsavel               : chr  "Adriana Cristina da Silva" "Adriana Cristina da Silva"
+# $ cedente                   : chr  "Andre Luis Itacarambi Rego" "Andre Luis Itacarambi Rego"
+# $ sala                      : chr  "SL. Nº 1507A" "SL. Nº 1507A"
+# $ nivel1                    : chr  "COORDENADOR DA ASSESSORIA DE PLANEJAMENTO E G" "COORDENADOR DA ASSESSORIA DE PLANEJAMENTO E G"
+# $ nivel2                    : chr  "SALA Nº 1507A" "SALA Nº 1507A"
+# $ nivel3                    : chr  "COORDENADOR DA ASSESSORIA DE PLANEJAMENTO E G" "COORDENADOR DA ASSESSORIA DE PLANEJAMENTO E G"
+# $ nivelSuperior             : chr  "CNC, 15º ANDAR" "CNC, 15º ANDAR"
+# $ tombamento                : int  22102 23428
+# $ dataMovimentacao          : chr  "05/12/2017" "05/12/2017"
+# $ interna                   : chr  "S" "S"
+# $ retorno                   : chr  "N" "N"
+# $ inventario                : int  NA NA
+# $ responsavelCadastro       : chr  "Ricardo Vaz Gomes Bastos" "Ricardo Vaz Gomes Bastos"
+# $ dataConfirmacaoRecebimento: chr  "" ""
+# $ descricaoBem              : chr  "MONITOR DE VÍDEO LCD" "MONITOR DE VÍDEO"
+#
+# 
+x <- "ED. CNC, 08º ANDAR"
+gsub("^(ED\\. CNC\\, )", "CNC, \\2", x)
+# 
+# [1] "CNC, 08º ANDAR"
+# 
 x <- "SALA 604B1 RECEPÇÃO DA TI"
 gsub("(^SALA\\s{1})([^\\Nº])","SL. Nº \\2", x)
-
+# 
+# [1] "SL. Nº 604B1 RECEPÇÃO DA TI"
+# 
 x <- "SALA Nº 801"
 gsub("(^SALA\\s{1})([\\Nº])","SL. \\2", x)
-
-x <- "SALA Nº 604B1 RECEPÇÃO DA TI"
-gsub("(^SALA\\s{1})([\\Nº])","SL. \\2", x)
-
-x <- "SL. Nº 904A"
-gsub("^(SL\\.)\\s+","\\1 Nº ", x)
-
+# 
+# [1] "SL. Nº 801"
+# 
 x <- "SL. 904A"
 gsub("^(SL\\.)([[:space:]])([^\\Nº])","SL. Nº\\2\\3", x)
-
-# FILTRANDO O DATASET
-
-names(mpi)  # Nomes das colunas
-
-mpi_teste <- filter(mpi, grepl("^(SL\\.)([^[:space:]])", sala))
-
-mpi_teste <- filter(mpi, grepl(("ºAND\\."), nivelSuperior))
-mpi_teste <- filter(mpi, grepl(("^BENS NÃO LOCALIZADOS"), sala))
-mpi_teste <- filter(mpi, grepl("Guillardi", responsavel))
-mpi_teste <- filter(mpi, grepl("Patricia Rambo", responsavel))
-mpi_teste <- filter(mpi, grepl("PROTOCOLO GERAL",sala)|grepl("SEÇÃO DE ARQUIVO",sala))
-mpi_teste <- filter(mpi, grepl("PROTOCOLO GERAL",nivel3))
-mpi_teste <- filter(mpi, grepl("SEÇÃO DE ARQUIVO",nivel3))
-mpi_teste <- filter(mpi, grepl("ED\\. CNC",nivelSuperior))
-mpi_teste <- filter(mpi, grepl("76388",X.U.FEFF.id))
-mpi_teste <- filter(mpi, grepl("BENS NÃO LOCALIZADOS NA SALA", sala, fixed = TRUE))
-mpi_teste <- filter(mpi, grepl("ROLL", sala, fixed = TRUE))
-mpi_teste <- filter(mpi, grepl("º ANDAR", nivelSuperior, fixed = TRUE))
-mpi_teste <- filter(mpi, grepl("BENS NÃO LOCALIZADOS NA SALA", sala, fixed = TRUE))
-mpi_teste <- filter(mpi, grepl("LOTE", sala, fixed = TRUE))
-mpi_teste <- filter(mpi, grepl("DESFAZIMENTO", nivelSuperior, fixed = TRUE))
-mpi_teste <- filter(mpi, grepl("^0", sala))
-
-bens_select <- filter(bensPatrimoniais, tombamento >= 37827 & tombamento <= 38623 & dataBaixa == "")
-
-mpi_select <- filter(mpi_select, (responsavel == "Daniela Heitor de Moura" | responsavel == "Levy Carlos Caixeta de Sa" | responsavel == "Marcio Guillardi da Silva"))
-
-mpi_select <- filter(mpi_select, tombamento >= 37827 & tombamento <= 38623 &
-                       ((cedente == "Levy Carlos Caixeta de Sa" & mpi$responsavel == "Daniela Heitor de Moura") |
-                          (cedente == "Daniela Heitor de Moura" & responsavel == "Levy Carlos Caixeta de Sa"))
-)
-
-mpi_select <- filter(mpi_temp, tombamento >= 37800 & tombamento <= 38650)
-bens_select <- filter(bensPorGrupo, id >= 37800 & id <= 38650)
-
-
-patrimonio_select <- filter(mpi, sala == "PROTOCOLO GERAL" | sala == "SEÇÃO DE ARQUIVO")
-patrimonio_select <- filter(mpi, is.na(nivel2))
-patrimonio_select <- filter(mpi_teste, local == "ED. CNC" & !is.na(nivel1))
-patrimonio_select <- filter(mpi, is.na(responsavel))
-patrimonio_select <- mutate_at(patrimonio_novo, vars("tombamento"), as.integer)
-patrimonio_select <- filter(patrimonio_select, (tombamento < 38624 & tombamento > 37827))
-
-patrimonio_select <- patrimonio_novo$dataConfirmacaoRecebimento[patrimonio_novo$X.U.FEFF.id == 17478]
-
-patrimonio_select <- mpi[which(mpi$id == "14320"),]
-
-patrimonio_novo$local[patrimonio_novo$id == "41571"] <- "ED. CNC, ANDAR TÉRREO, PROTOCOLO"
-patrimonio_novo$nivel2[patrimonio_novo$id == "41571"] <- "ANDAR TÉRREO"
-patrimonio_novo$nivelSuperior[patrimonio_novo$id == "41571"] <- "CNC, ANDAR TÉRREO"
-
-patrimonio_select <- filter(patrimonio_novo, grepl("^0", sala))
-patrimonio_select <- filter(patrimonio_novo, grepl("^0", sala))
-
-
-# MUDANÇA DE TIPO DE COLUNA (FACTOR, DATA ETC)
-
-patrimonio_novo <- mutate_at(patrimonio_novo, vars("responsavel", "cedente"), as.character)
-patrimonio_novo <- mutate_at(patrimonio_novo, vars("responsavel", "cedente"), as.factor)
-patrimonio_novo <- mutate_at(patrimonio_novo, vars("sala", "nivel1", "nivel2", "nivel3"), as.factor)
-mpi = dmy(mpi_novo$data)
-mpi$dataConfirmacaoRecebimento = dmy_hm(patrimonio_novo$dataConfirmacaoRecebimento)
 # 
-patrimonio_novo[37451,]                                                # Retorna a linha correspondente (na sequencia)
-patrimonio_novo[[9]][patrimonio_novo$X.U.FEFF.id == "82778"]           # Retorna todos os registros encontrados no dataframe (df[[coluna]][id="busca"])
-patrimonio_novo[match("76388",patrimonio_novo$X.U.FEFF.id),]           # Retorna o primeiro registro encontrado correspondente ao id informado
-patrimonio_novo$tombamento[patrimonio_novo$X.U.FEFF.id == "76388"]     # Retorna uma lista com o número do tombamento dos registros correspondentes
-patrimonio_novo$X.U.FEFF.id == "76388"                                 # Retorna uma lista de TRUE ou FALSE correspondente ao registro encontrado ou não
-which(patrimonio_novo$X.U.FEFF.id == "76282")                          # Retorna o número da linha que contém o registro encontrado / id Movimentação = 76388
+# [1] "SL. Nº 904A"
+# 
+# 
+mpi[1,]                                       # Retorna a linha correspondente (da sequencia)
+mpi[[4]][mpi$id == "31892"]                   # Retorna todos os registros encontrados no dataframe (df[[coluna]][id="busca"])
+mpi[match("31892",mpi$id),]                   # Retorna o primeiro registro encontrado correspondente ao id informado
+mpi$tombamento[mpi$id == "31892"]             # Retorna uma lista com o número do tombamento dos registros correspondentes
+mpi$id == "31892"                             # Retorna uma lista de TRUE ou FALSE para o registro encontrado ou não
+which(mpi$id == "31892")                      # Retorna o número da linha que contém o registro encontrado / id Movimentação = 31892
 #
-txt <- c("arm","foot","lefroo", "bafoobar")
-if(length(i <- grep("foo", txt)))
-  cat("'foo' appears at least once in\n\t", txt, "\n")
-i # 2 and 4
-txt[i]
-
-patrimonio_novo_ <- patrimonio_novo_ %>% mutate(nivel2 = str_replace_all(nivel2,"14ºAND.","14º ANDAR"))
-
-str_extract("SL.904A", "SL\\.[:digit:]{1}")  # [1] "SL.9"  : Apenas com o primeiro dígito numérico
-str_extract("SL.904A", "SL\\.[:digit:]+")    # [1] "SL.904": Todos os dígitos (núméricos)
-str_extract("SL.904A", "SL\\.[:alnum:]+")    # [1] "SL.904": Todos os dígitos (núméricos) e alfabéticos (letras)
+str_extract("SL.904A", "SL\\.[:digit:]{1}")   # [1] "SL.9"  : Apenas com o primeiro dígito numérico
+str_extract("SL.904A", "SL\\.[:digit:]+")     # [1] "SL.904": Todos os dígitos (núméricos)
+str_extract("SL.904A", "SL\\.[:alnum:]+")     # [1] "SL.904": Todos os dígitos (núméricos) e alfabéticos (letras)
 str_extract("SL.904A", "SL\\.[0-9]+")
 str_extract("SL.904A", "^(SL.)([^[:space:]])([[:alnum:]]+)")
-!is.na(str_extract("SL.904A TESTE", "SL\\.[:digit:]+"))
-!is.na(str_extract("SL. 904A TESTE", "^(SL.)"))
+# 
 str_locate("SL.904A", "SL\\.[0-9]+")
-
-
+#      start end
+# [1,]     1   6
+#
+# 
 # Utilizar essas funções para substituição de caracteres
-
-x <- "SL. 904A"
-gsub("^(SL.)\\s+","\\1 Nº ", x)
-
-x <- "SL.904A"
-gsub("^(SL.)\\S","\\1 Nº ", x)
-gsub("^(SL.)([^[:space:]])","\\1 Nº \\2", x)
-
-
-# Exemplos
-
-s = "PleaseAddSpacesBetweenTheseWords"
-gsub("([a-z])([A-Z])", "\\1 \\2", s)
-
+# 
+x = "PleaseAddSpacesBetweenTheseWords"
+gsub("([a-z])([A-Z])", "\\1 \\2", x)
+# 
+# [1] "Please Add Spaces Between These Words"
+# 
+# 
 x <- "<dd>Found on January 1, 2007</dd>"
 gsub("<dd>[F|f]ound on |</dd>", "", x)
-
-c(1:10,"D")
-
+# 
+# [1] "January 1, 2007"
+# 
+# 
 hw <- "Hadley Wickham"
+# 
 str_sub(hw, 1, 6)
 str_sub(hw, end = 6)
 str_sub(hw, 8, 14)
 str_sub(hw, 8)
 str_sub(hw, c(1, 8), c(6, 14))
-.
-
-# LENDO ARQUIVOS CSV
-patrimonio_novo <- read.csv("C:\\Users\\Marcio\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\movimentacoesPGT_2.csv", sep = ";", encoding = "UTF-8", stringsAsFactors = FALSE)
-patrimonio_novo_as_is <- read.csv("C:\\Users\\Marcio.silva.mpt\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\movimentacoesPGT_2.csv", sep = ";", encoding = "UTF-8", as.is = TRUE)
-patrimonio_novo <- read.csv("C:\\Users\\Marcio\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\movimentacoesPGT_2_transformada.csv",sep = ",", encoding = "UTF-8")
-imdb <- readr::read_rds("C:\\Users\\marcio.silva.MPT\\Dropbox (Pessoal)\\PGT COSMOS PLANILHA\\imdb.rds")
-
-
-# GRAVANDO ARQUIVOS CSV
-write.csv(patrimonio_novo, file = "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT_2_transformada.csv")
+# 
+gregexpr(pattern = ",", "ED. CNC, ANDAR TERREO, PORTARIA CNC", fixed = TRUE)[[1]]
 #
-
-mpi <- mpi %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2),
-                                     str_replace_all(nivel2, "SALA Nº", "SL. Nº"),
-                                     if_else(sala != "ED. CNC",
-                                             str_trim(sala),
-                                             if_else(!is.na(nivel2), 
-                                                     str_trim(nivel2), 
-                                                     str_trim(sala)),
-                                             missing = NULL)))
-
-# 
-# gregexpr(pattern = ",", local, fixed = TRUE) = 
-# 
-# [[1]]
-# [1] 13 51
+# [1]  8 22
 # attr(,"match.length")
 # [1] 1 1
+# attr(,"index.type")
+# [1] "chars"
+# attr(,"useBytes")
+# [1] TRUE
+#
 # 
-local <- "SL. Nº 1804C, ASSESSORIA DA VICE PROCURADORA GERAL, 18º ANDAR"
-# 
-str_sub(local, gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2]+2, str_length(local))
-
-patrimonio_teste <- mpi %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2), 
-                                                                str_sub(local, gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2]+2, str_length(local)),
-                                                                str_trim(sala), 
-                                                                missing = NULL),
-                                                 nivel1 = if_else(is.na(nivel1) & str_length(nivelSuperior) >3,
-                                                                  str_sub(nivelSuperior, gregexpr(pattern = ",", nivelSuperior, fixed = TRUE)[[1]][1]+2, str_length(nivelSuperior)),
-                                                                  str_trim(nivel1), 
-                                                                  missing = NULL),
-                                                 caracter = gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2], 
-                                                 tamanho  = str_length(local))
-
-
-patrimonio_teste <- patrimonio_select %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel1) & str_length(nivelSuperior) > 3, 
-                                                                str_sub(local, gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2]+2, str_length(local)),
-                                                                str_trim(sala), 
-                                                                missing = NULL),
-                                                 nivel1 = if_else(is.na(nivel1) & str_length(nivelSuperior) >3,
-                                                                str_sub(nivelSuperior, gregexpr(pattern = ",", nivelSuperior, fixed = TRUE)[[1]][1]+2, str_length(nivelSuperior)),
-                                                                str_trim(nivel1), 
-                                                                missing = NULL),
-                                                 caracter = gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2], 
-                                                 tamanho  = str_length(local))
-
-view(patrimonio_teste)
-
-mpi_select <- mpi %>% mutate(sala = if_else(nivel2 == "ROLL",
-                                            str_trim(nivel2),
-                                            str_trim(sala), 
-                                            missing = NULL),
-                             nivel2 = if_else(grepl("ROLL", sala, fixed = TRUE),
-                                              str_sub(nivelSuperior, gregexpr(pattern = ",", nivelSuperior, fixed = TRUE)[[1]][1]+2, str_length(nivelSuperior)),
-                                              str_trim(nivel2), 
-                                              missing = NULL))
-
-patrimonio_novo <- patrimonio_novo %>% mutate(sala = if_else(is.na(sala), 
-                                                             str_sub(local, gregexpr(pattern = ",", local, fixed = TRUE)[[1]][2]+2, str_length(local)),
-                                                             str_trim(sala), 
-                                                             missing = NULL))
-
-view(patrimonio_novo)
-
-mpi <- mpi %>% mutate(nivelSuperior = sub("ED. CNC, ", "CNC, ", nivelSuperior))
-
-mpi_backup <- mpi
-
-patrimonio_novo$sala[patrimonio_novo$sala == "0602"] <- "602"
-
-patrimonio_novo <- patrimonio_novo %>% mutate(nivel2 = if_else(nivel1 == "ED. CNC" & grepl("ANDAR", nivel2, fixed = TRUE),
-                                                        str_trim(nivel4), 
-                                                        nivel2), 
-                                              nivel1 = if_else(nivel1 == "ED. CNC" & grepl("SALA", nivel3, fixed = TRUE), 
-                                                        str_trim(nivel3), 
-                                                        nivel1))
-
-
-patrimonio_teste <- patrimonio_novo %>% mutate(sala = if_else(sala == "ED. CNC" & is.na(nivel2), 
-                                                              str_trim(local),
-                                                              "NÃO", 
-                                                              missing = NULL))
-
-patrimonio_teste <- patrimonio_novo %>% mutate(sala = if_else(sala == "ED. CNC", 
-                                                              "SIM",
-                                                              "NÃO", 
-                                                              missing = NULL))
-
-
-patrimonio_select <- patrimonio_select%>% mutate(local = if_else(local == "ED. CNC, ANDAR TERREO, RECEPÇAO", 
-                                                                 "ED. CNC, ANDAR TÉRREO, RECEPÇÃO", 
-                                                                 str_trim(local)))
-
-patrimonio_teste <- tibble(x1 = patrimonio_novo$sala[patrimonio_novo$sala == "ED. CNC" & is.na(patrimonio_novo$nivel2)], 
-                           x2 = patrimonio_novo$local[patrimonio_novo$sala == "ED. CNC" & is.na(patrimonio_novo$nivel2)])
-
-patrimonio_lixo <- filter(patrimonio_novo, patrimonio_novo$sala == "1506A")
-patrimonio_lixo <- filter(patrimonio_novo, patrimonio_novo$sala == "SIM")
-
 gregexpr(pattern = ",", "ED. CNC, ANDAR TERREO, PORTARIA CNC", fixed = TRUE)[[1]][2] 
-
-
+# 
+# [1] 22
+# 
+# 
 str_sub("ED. CNC, 06º ANDAR, COPA 06", gregexpr(pattern = ",", "ED. CNC, 06º ANDAR, COPA 06", fixed = TRUE)[[1]][2]+2, str_length("ED. CNC, 06º ANDAR, COPA 06"))
-
-
-# -------------------------------------------------------------------------------------------------------
-
-varStrSub <- "ED. CNC, 07º ANDAR, BANHEIRO FEMININO"
-
-str_sub(varStrSub, gregexpr(pattern = ",", varStrSub)[[1]][2]+2, str_length(varStrSub))
+#
+# [1] "COPA 06"
 # 
-# Para aplicar em: 
-# str_sub(local, gregexpr(pattern = ",", local)[[1]][2]+2, str_length(local))
-# -------------------------------------------------------------------------------------------------------
-
-
-patrimonio_patrimnovo_baixados <- patrimonio_novo %>% filter(month(dataBaixa) == 1)
-patrimonio_novo_baixados <- patrimonio_novo %>% filter(month(dataBaixa) %in% c(1,2,3))
-
-patrimonio_novo <- patrimonio_novo %>% mutate(str_split(sala,","))
-patrimonio_novo <- patrimonio_novo %>% mutate(str_split(sala,","))
-
-
-patrimonio_select <- filter(patrimonio_novo, responsavel == "Alex Mendonca Feitosa")
-
-
-patrimonio_novo <-  patrimonio_novo %>% mutate(nivel2 = if_else(nivel1 == "ED. CNC" & grepl("ANDAR", nivel2, fixed = TRUE), 
-                                                                str_trim(nivel4), nivel2), 
-                                               nivel1 = if_else(nivel1 == "ED. CNC" & grepl("SALA", nivel3, fixed = TRUE), 
-                                                                str_trim(nivel3), nivel1))
-
-patrimonio_novo <-  patrimonio_novo %>% mutate(nivel1 = if_else(nivel1 == "BENS NÃO LOCALIZADOS NA" & nivel2 == "SALA Nº 501C", "BENS NÃO LOCALIZADOS NA SALA Nº 501C", nivel1), nivel2 = if_else(nivel1 == "BENS NÃO LOCALIZADOS NA SALA Nº 501C" & nivel2 == "SALA Nº 501C", "COORDENAÇÃO DE SUPORTE AO USUÁRIO	", nivel2))
-
-patrimonio_novo <- patrimonio_novo %>% mutate(nivel2 = if_else(is.na(nivel2), nivel1, nivel2, missing = 'NA'))
-
-
-
-# ************** MAIS SOBRE R **********************
-#   
-# https://bookdown.org/rdpeng/rprogdatascience/history-and-overview-of-r.html#back-to-r
+x <-  gregexpr(pattern ='2',"thequickbrownfoxeswe2retired")
 # 
-# https://www.cloudera.com/tutorials/advanced-analytics-with-sparkr-in-rstudio.html
+if_else(x[[1]][1] > 0, "Encontrado", "Não Encontrado")
 # 
-# http://www.datasciencemadesimple.com/
+#
+# OPERAÇÕES E FILTROS COM DATAS
 # 
-# Séries Temporais
+mpi_teste <- mpi %>% filter(month(dataMovimentacao) > 5 & year(dataMovimentacao) == 20)
 # 
-# https://www.tutorialspoint.com/r/r_time_series_analysis.htm
+mpi_teste <- mpi %>% filter(month(dataMovimentacao) %in% c(2,4,6))
 # 
-# # https://bookdown.org/rdpeng/rprogdatascience/r-nuts-and-bolts.html#data-frames
+# Exemplo com imdf (filmes)
 # 
-# http://www.endmemo.com/program/R/gregexpr.php
-# 
-# ************** MAIS SOBRE R **********************
-  
-ggplot(data = patrimonio_sumarizado_responsavel) + 
-  geom_point(mapping = aes(x = responsavel, y = movimentacoes)) + theme(axis.text.x=element_blank(),
-                                                                        axis.ticks.x=element_blank())
-
-patrimonio_sumarizado_responsavel %>% filter(movimentacoes > 50) %>% ggplot(mapping = aes(x = responsavel, y = movimentacoes)) + 
-  geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-
-# ARRANGE com alteração do NOME DAS COLUNAS
-
-selecao <- flights %>% arrange(year, month, day) %>% select(year, month, day)
-
-selecao <- flights %>% arrange(year,month,day) %>% select(Ano = year, Mes = month, Dia = day)
-
-
 imdb %>%
   mutate(
     lucro = receita - orcamento,
@@ -928,8 +748,8 @@ imdb %>%
   filter(!is.na(lucro)) %>% 
   ggplot() + 
   geom_point(mapping = aes(x = orcamento, y = receita, color = lucro))
-
-
+# 
+# 
 # ****************************************************************************************************************************
 # 
 # Geoms%>%
@@ -956,62 +776,6 @@ imdb %>%
 # Para fazer um gráfico, basta substituir DATA por um banco de dados, GEOM_FUNCTION por uma função geométrica e MAPPINGS 
 # por uma coleção de mapas estéticos. Isso será muito útil quando você for fazer o seu próprio gráfico.
 # 
-# ****************************************************************************************************************************
-  
-patrimonio <- patrimonio %>% select(Id:Data, Data.de.Confirmação.de.Recebimento, Local.de.Destino)
-
-patrimonio_novo_sumarizado <- patrimonio_novo %>% subset(responsavel != "NA") %>% group_by(responsavel, cedente) %>% tally(name = "movimentacoes")
-patrimonio_novo_sumarizado <- patrimonio_novo %>% subset(!is.na(responsavel)) %>% group_by(responsavel, cedente) %>% tally(name = "movimentacoes")
-
-patrimonio <- patrimonio %>% mutate(Sala = Local.de.Destino)
-patrimonio <- patrimonio %>% mutate(Sala = str_replace_all(Sala,"Nº ",""))
-patrimonio <- patrimonio %>% mutate(Sala = str_replace_all(Sala,"SL. ",""))
-patrimonio <- patrimonio %>% mutate(Sala = str_replace_all(Sala,"SL.","")) 
-
-patrimonio <- patrimonio %>% subset(Id != "63261")
-patrimonio <- patrimonio %>% subset(Id != "76760")
-
-patrimonio$Data.Prevista.para.Devolução[patrimonio$Data.Prevista.para.Devolução ==""] <- NA
-patrimonio$Data.de.Confirmação.de.Recebimento[patrimonio$Data.de.Confirmação.de.Recebimento ==""] <- NA
-patrimonio$Fornecedor[patrimonio$Fornecedor ==""] <- NA
-patrimonio$Responsável[patrimonio$Responsável ==""] <- NA
-
-patrimonio_novo <- patrimonio_novo %>% mutate(nivel1 = str_replace_all(nivel1,"SALA Nº ",""))
-patrimonio_novo <- patrimonio_novo %>% mutate(sala = str_replace_all(sala,"CNC, 14ºAND.","CNC, 14º ANDAR"))
-patrimonio_novo <- patrimonio_novo %>% mutate(nivel2 = str_replace_all(nivel2,"14ºAND.","14º ANDAR"))
-patrimonio_novo <- patrimonio_novo %>% mutate(local = str_replace_all(local,"ED. CNC, ANDAR TÉRREO PORTARIA CNC","ED. CNC, ANDAR TÉRREO, PORTARIA"))
-patrimonio_novo <- patrimonio_novo %>% mutate(nivelSuperior = str_replace_all(nivelSuperior,"SANITÁRIOS, VESTIÁRIOS E COPA","SANITÁRIOS E COPA"))
-
-patrimonio_novo <- patrimonio_novo %>% mutate(nivelSuperior = sub("ºAND.", "º ANDAR", nivelSuperior))
-patrimonio_novo <- patrimonio_novo %>% mutate(nivelSuperior = sub("ED. CNC, ", "CNC, ", nivelSuperior))
-
-# *** APAGA OS REGISTROS DE MOVIMENTAÇÕES TEMPORÁRIAS **** 
-  
-patrimonio <- patrimonio %>% subset(Responsável != "NA") %>% group_by(Responsável, Cedente)
-
-
-# **** DESAGRUPA UM DATA FRAME ANTERIORMENTE AGRUPADO ==== O SELECT() CONSIDERA AS COLUNAS DE AGRUPAMENTO
-
-patrimonio %>% ungroup() %>% select(Id)
-
-patrimonio %>% ungroup() %>% select(Sala)
-
-teste_patrimonio <- patrimonio %>% mutate(Sala = str_sub(Sala, 1,10))
-
-patrimonio %>% ungroup() %>% select(Sala) %>%mutate(Sala = str_sub(Sala, 1,10))
-
-teste_patrimonio <- patrimonio %>% mutate(Sala = ifelse(gregexpr(pattern = ",", Sala)[[1]][1]>0,str_sub(Sala, 1,gregexpr(pattern = ",", Sala)[[1]][1]-1), Sala))
-
-# (* https://gomesfellipe.github.io/post/2017-12-17-string/string/)
-
-teste_patrimonio <- patrimonio %>% mutate(Sala = if_else(grepl(",", Sala, fixed = TRUE), str_sub(Sala, 1,10), Sala))
-
-
-resultado <-  gregexpr(pattern ='2',"thequickbrownfoxeswe2retired")
-
-if_else(resultado[[1]][1]>0, "Encontrado", "Não Encontrado")
-
-
 # ****************************************************************************************************************************
 # 
 # Há várias funções auxiliares que você pode usar em select():
@@ -1040,16 +804,7 @@ if_else(resultado[[1]][1]>0, "Encontrado", "Não Encontrado")
 # git push
 # 
 # https://help.github.com/en/github/using-git/renaming-a-remote
-# 
-# patrimonio_novo_sumarizado %>% filter(movimentacoes > 1000) %>% ggplot() +
-#   geom_bar(mapping = aes(x = movimentacoes))
-# 
-# library(devtools)
-# library(dplyr)
-# library(stringr)
-# library(lubridate)
-# library(nycflights13)
-# library(lubridate)
+#
 # 
 # Regular Expression Syntax:
 #   
@@ -1095,31 +850,46 @@ if_else(resultado[[1]][1]>0, "Encontrado", "Não Encontrado")
 # [:xdigit:]  Hexadecimal digits: 0 1 2 3 4 5 6 7 8 9 A B C D E F a b c d e f
 # 
 # 
-
-# 
 # For completeness, write_csv() from the readr package is faster and never writes row names
 # 
 # install.packages('readr', dependencies = TRUE)
-library(readr)
-write_csv(t, "t.csv")
+# library(readr)
+# write_csv(t, "t.csv")
 # 
 # If you need to write big data out, use fwrite() from the data.table package. It's much faster than both write.csv and write_csv
 # 
 # install.packages('data.table')
-library(data.table)
-fwrite(t, "t.csv")
+# library(data.table)
+# fwrite(t, "t.csv")
 # 
 # Below is a benchmark that Edouard published on his site
 # 
-microbenchmark(write.csv(data, "baseR_file.csv", row.names = F),
-               write_csv(data, "readr_file.csv"),
-               fwrite(data, "datatable_file.csv"),
-               times = 10, unit = "s")
-
-by(dataFrame, 1:nrow(dataFrame), function(row) dostuff)
-
-library("gtools")
-asc("°")
-asc("º")
-chr(186)
-
+# microbenchmark(write.csv(data, "baseR_file.csv", row.names = F),
+#                write_csv(data, "readr_file.csv"),
+#                fwrite(data, "datatable_file.csv"),
+#                times = 10, unit = "s")
+# 
+# by(dataFrame, 1:nrow(dataFrame), function(row) dostuff)
+# 
+# library("gtools")
+# asc("°")
+# asc("º")
+# chr(186)
+# 
+# ************** MAIS SOBRE R **********************
+#   
+# https://bookdown.org/rdpeng/rprogdatascience/history-and-overview-of-r.html#back-to-r
+# 
+# https://www.cloudera.com/tutorials/advanced-analytics-with-sparkr-in-rstudio.html
+# 
+# http://www.datasciencemadesimple.com/
+# 
+# Séries Temporais
+# 
+# https://www.tutorialspoint.com/r/r_time_series_analysis.htm
+# 
+# # https://bookdown.org/rdpeng/rprogdatascience/r-nuts-and-bolts.html#data-frames
+# 
+# http://www.endmemo.com/program/R/gregexpr.php
+# 
+# ************** MAIS SOBRE R **********************
