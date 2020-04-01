@@ -6,7 +6,7 @@
 rm(list = ls())
 # 
 # Carregamento das Bibliotecas (library)
-#
+# 
 library(tidyverse)
 library(tidyr)
 library(lubridate)
@@ -70,7 +70,7 @@ mpi <- mpi %>% mutate(responsavel = if_else(responsavel != "Marcio Guillardi da 
 #
 # Gravando o arquivo original com os dados dos servidores camuflados
 #
-write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+# write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
 # 
 # Mudando a ordem das colunas e alterando os nomes de algumas delas
 #
@@ -198,7 +198,6 @@ mpiSumResponsavel %>% filter(bensMovimentados > nFiltro) %>%  # filter(bensMovim
   theme(axis.text.x = element_text(size = 10), 
         plot.title = element_text(hjust = 0.5), 
         panel.grid.major = element_line(colour = "grey50"))
-# 
 # theme_ridges(font_size = 16) #  +
 # 
 # theme(axis.title.y = element_blank())
@@ -228,7 +227,13 @@ mpiSumResponsavel %>% filter(bensMovimentados > nFiltro) %>%
   theme(axis.text.x = element_text(angle = 90, size = 9), plot.title = element_text(hjust = 0.5), 
         panel.grid.major = element_line(colour = "grey50")) +
   geom_text(check_overlap = TRUE)
-#
+# 
+# mpiSumResponsavel %>% filter(bensMovimentados > nFiltro & 
+#                                       (responsavel == "ALIR" | responsavel == "LCCS" | 
+#                                          responsavel == "RVGB" | responsavel == "VCAF" | responsavel == "DHM")) %>%
+#   ggplot(mapping = aes(x = responsavel, y = bensMovimentados)) +
+#   geom_boxplot() + coord_flip() +geom_jitter(color = "red")
+# 
 #
 # theme_linedraw(base_size = 12) + 
 # theme_wsj(base_size = 11) + 
@@ -267,6 +272,8 @@ mpi_Filtro <- mpiSumResponsavel %>%
 # As FACTOR coluna ANO
 # 
 mpi_Filtro <- mutate_at(mpi_Filtro, vars("ano"), as.factor)
+#
+# Um mesmo gráfico para os dois filtros anteriores
 # 
 mpi_Filtro %>%
   ggplot(aes(x = responsavel, 
@@ -286,6 +293,50 @@ mpi_Filtro %>%
         plot.title = element_text(hjust = 0.5), 
         panel.grid.major = element_line(colour = "grey50")) +
   geom_text(check_overlap = TRUE)
+#
+# Filtrando um dos responsável pelo recebimento do maior número de bens 
+# 
+mpi_Filtro <- mpi %>% filter(responsavel == "LCCS") %>%
+  group_by(responsavel, ano = as.factor(year(dataMovimentacao)),
+           mes = month(dataMovimentacao, 
+                       label = TRUE,  abbr = TRUE)) %>%
+  tally(name = "movimentacoes")
+#
+mpi_Filtro %>%
+  ggplot(aes(x = mes, 
+             y = movimentacoes, 
+             fill = ano, 
+             label = movimentacoes, vjust = "inward")) +
+  geom_bar(stat = "Identity", position = "stack") + # dodge (lado a lado) ou stack (um sobre o outro)
+  labs(y = "Qtde de Movimentações", 
+       x = "Período (Meses)",
+       fill = "Anos") +
+  ggtitle(paste("Movimentações por Mês", " - Ano(s): ", toString(levels(mpi_Filtro$ano)), 
+                "(", gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpi_Filtro$movimentacoes), perl=T),
+                " Movimentações)")) + 
+  theme(axis.text.x = element_text(angle = 90, size = 10), 
+        plot.title = element_text(hjust = 0.5), 
+        panel.grid.major = element_line(colour = "grey50")) +
+  geom_text(check_overlap = TRUE, 
+            vjust = 0, position = position_stack(vjust = 0.5))
+# 
+mpi_Filtro %>%
+  ggplot(aes(x = mes, 
+             y = movimentacoes, 
+             fill = ano, 
+             label = movimentacoes, vjust = "inward")) +
+  geom_bar(stat = "Identity", position = "dodge") + # dodge (lado a lado) ou stack (um sobre o outro)
+  labs(y = "Qtde de Movimentações", 
+       x = "Período (Meses)",
+       fill = "Anos") +
+  ggtitle(paste("Movimentações por Mês", " - Ano(s): ", toString(levels(mpi_Filtro$ano)), 
+                "(", gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpi_Filtro$movimentacoes), perl=T),
+                " Movimentações)")) + 
+  theme(axis.text.x = element_text(angle = 90, size = 10), 
+        plot.title = element_text(hjust = 0.5), 
+        panel.grid.major = element_line(colour = "grey50")) +
+  geom_text(check_overlap = TRUE, 
+            vjust = 0, position = position_dodge(0.9),)
 #
 # Filtrando o responsável, o ano e todos os meses respectivos com o somatório dos
 # bem movimentados
@@ -315,50 +366,32 @@ ggplot(mpi_Filtro,
         panel.grid.major = element_line(colour = "grey50")) +
   geom_text(check_overlap = TRUE)
 #
-mpi_Filtro <- mpi %>% filter(responsavel == "LCCS") %>%
-  group_by(responsavel, ano = as.factor(year(dataMovimentacao)),
-           mes = month(dataMovimentacao, 
-                       label = TRUE,  abbr = TRUE)) %>%
-  tally(name = "movimentacoes")
+#  
+# sum(mpiSumResponsavel$bensMovimentados)
+# 
+# [1] 41311
+#  
+# sum(mpiSumResponsavel[mpiSumResponsavel$bensMovimentados > 300,]$bensMovimentados, na.rm=TRUE)
+# 
+# [1] 25218
+#  
+# paste(round(100*7747/41311, 2), "%", sep="")
+#  
+# [1] "61.04%"
+#  
+mpi_sumarizado <- mpi %>% filter(year(dataMovimentacao) == 2019 & month(dataMovimentacao) == 06, responsavel == "LCCS") %>%
+  group_by(id, tombamento, cedente, sala, nivelSuperior) %>% summarize("contagem"= n())
+# group_by(ano = year(dataMovimentacao), id, responsavel, cedente, sala = str_sub(sala, end = 150) ) %>% summarize("contagem"= n())
+# 
+mpi_sumarizado <- mpi_sumarizado %>% filter(contagem > 10)
 #
-mpi_Filtro %>%
-  ggplot(aes(x = mes, 
-             y = movimentacoes, 
-             fill = ano, 
-             label = movimentacoes, vjust = "inward")) +
-  geom_bar(stat = "Identity", position = "stack") + # dodge (lado a lado) ou stack (um sobre o outro)
-  labs(y = "Qtde de Movimentações", 
-       x = "Período (Meses)",
-       fill = "Anos") +
-  ggtitle(paste("Movimentações por Mês", " - Ano(s): ", toString(levels(mpi_Filtro$ano)), 
-                "(", gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpi_Filtro$movimentacoes), perl=T),
-                " Movimentações)")) + 
-  theme(axis.text.x = element_text(angle = 90, size = 10), 
-        plot.title = element_text(hjust = 0.5), 
-        panel.grid.major = element_line(colour = "grey50")) +
-  geom_text(check_overlap = TRUE, 
-            vjust = 0, position = position_stack(vjust = 0.5))
-# 
-
-mpi_Filtro %>%
-  ggplot(aes(x = mes, 
-             y = movimentacoes, 
-             fill = ano, 
-             label = movimentacoes, vjust = "inward")) +
-  geom_bar(stat = "Identity", position = "dodge") + # dodge (lado a lado) ou stack (um sobre o outro)
-  labs(y = "Qtde de Movimentações", 
-       x = "Período (Meses)",
-       fill = "Anos") +
-  ggtitle(paste("Movimentações por Mês", " - Ano(s): ", toString(levels(mpi_Filtro$ano)), 
-                "(", gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpi_Filtro$movimentacoes), perl=T),
-                " Movimentações)")) + 
-  theme(axis.text.x = element_text(angle = 90, size = 10), 
-        plot.title = element_text(hjust = 0.5), 
-        panel.grid.major = element_line(colour = "grey50")) +
-  geom_text(check_overlap = TRUE, 
-            vjust = 0, position = position_dodge(0.9),)
-
-# 
+ggplot(mpi_sumarizado, aes(x = mpi_sumarizado$sala, y = mpi_sumarizado$contagem, fill = sala, label = mpi_sumarizado[[6]])) +
+  geom_bar(stat = "Identity") +
+  labs(y = "Qtde de Bens", x = "Sala Destino") +
+  ggtitle(paste(meses[indice]," de ", mpi_sumarizado[[1]][1])) + theme_linedraw(base_size = 16) +
+  theme(axis.text.x = element_text(angle = 90, size = 8), plot.title = element_text(hjust = 0.5), 
+        panel.grid.major = element_line(colour = "grey50"), legend.position = "none") +
+  geom_label()
 #
 ##################################################################################################
 # 
@@ -464,7 +497,7 @@ anoAnalise <- 2019
 # 
 for (indice in 1:12) { 
   #
-  # indice <- 09
+  # indice <- 06
   # 
   mpi_sumarizado <- mpi %>% filter(year(dataMovimentacao) == anoAnalise & month(dataMovimentacao) == indice) %>%
     group_by(ano = year(dataMovimentacao), id, responsavel, cedente, sala) %>% summarize("contagem"= n())
