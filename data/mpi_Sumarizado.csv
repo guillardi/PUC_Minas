@@ -1,352 +1,650 @@
-"","responsavel","movimentacoes"
-"1","Adaildo Sande Pinheiro",11
-"2","Adailton Ferreira Lima",21
-"3","Adalberto Silva Martins",25
-"4","Adriana Brant Metzker Ferro",2
-"5","Adriana Chies",3
-"6","Adriana Cristina da Silva",2
-"7","Adriana Silveira Machado",5
-"8","Adriane Aviani Carvalho Mesquita",7
-"9","Adriano Leal Alves",1
-"10","Afonso de Paula Pinheiro Rocha",30
-"11","Alaires Magalhaes Bandeira",4
-"12","Alberto Bastos Balazeiro",66
-"13","Alex Jaeckel",5
-"14","Alex Mendonca Feitosa",8
-"15","Alexandra Calachibete",4
-"16","Alexandre Mesquita Gomes",1
-"17","Aline dos Santos de Souza",9
-"18","Aliomar Athayde Cavalcante Filho",36
-"19","Alisson Costa e Silva",65
-"20","Allen Gomes Costa Melo",6
-"21","Aluisio Aldo da Silva Junior",1
-"22","Alvacir Correa dos Santos",5
-"23","Amalia Ramalho de Caldas Lima",8
-"24","Amanda Andrade Silveira",7
-"25","Ana Carla Roseo de Oliveira",4
-"26","Ana Carolina de Menezes Alves Vilanova",5
-"27","Ana Carolina Fernandes Costa",1
-"28","Ana Claudia Freire Camargos",4
-"29","Ana Lucena de Oliveira",1
-"30","Ana Lucia Rodrigues Campos",24
-"31","Ana Maria de Lima Marques",100
-"32","Ana Paula Alvarenga Fayao",4
-"33","Ana Paula Vianna Braga",17
-"34","Analice Moura Velho",36
-"35","Anamaria Correa Marques",3
-"36","Andre Luis Itacarambi Rego",573
-"37","Andre Luis Souza",9
-"38","Andre Luis Spies",8
-"39","Andre Luiz Vendeth Scavassa",4
-"40","Andre Resende de Almeida",2
-"41","Andrea Isa Ripoli",1
-"42","Andreza Soares Moreira Bandeira",8
-"43","Angela Umpierre de Souza Marinho",4
-"44","Antonio Cesar Barros de Lima",1
-"45","Antonio Maia Gondim Junior",40
-"46","Antonio Marcos Teixeira de Oliveira",172
-"47","Antonio Nogueira Rodrigues Filho",10
-"48","Ariadnes Aglaia Maria C. Pinheiro",7
-"49","Artur Adolfo Cotias e Silva Filho",8
-"50","Bleiner Alexandre Moraes",3
-"51","Breno de Souza Oliveira",321
-"52","Bruna da Fonseca Shintaku de Oliveira",1
-"53","Calacia Irleza de Melo",8
-"54","Carla Botto Lamas",1
-"55","Carlos Gustavo Sousa Soares",58
-"56","Cassio Divino de Souza Matos",3
-"57","Celso Marques de Carvalho",2
-"58","Cezar do Bosco Alves",19
-"59","Charles Gama Barroso",28
-"60","Charles Henrique Goncalves Santos",2
-"61","Claudia Anbank",10
-"62","Claudia Nassif Jaber",11
-"63","Claudiane Roncato das Neves",24
-"64","Claudio Henrique Pereira de Castro",1
-"65","Claudio Ribeiro dos Santos",1
-"66","Cleibson Ribeiro do Carmo",170
-"67","Clenio Ricardo da Fonseca Sobreira",4
-"68","Cleofaster Sardinha e Silva",154
-"69","Cleriston Mendes de Souza",1
-"70","Cleverson Lautert Cruz",141
-"71","Cloves Alexandre da Silva",50
-"72","Cornelio Junior Rosa",4
-"73","Cristiane Maria de Carvalho Bizerra",5
-"74","Cristiano Otavio Paixao A. Pinto",40
-"75","Cristiano Pedroza da Silva",79
-"76","Cristina Aparecida Ribeiro Brasiliano",7
-"77","Cristina Soares de Oliveira e Almeida Nobre",26
-"78","Cynthia Silingardi Moraes Sampaio Fae",6
-"79","Cynthya Morais de Oliveira",58
-"80","Daiane Lais Rocha de Oliveira",60
-"81","Dan Carai da Costa e Paes",5
-"82","Daniel Jorge Vianna",8
-"83","Daniel Lacerda de Lima",5
-"84","Daniel Nogueira Vaz",46
-"85","Daniela de Morais do Monte Varandas",29
-"86","Daniela Heitor de Moura",275
-"87","Daniela Landim Paes Leme",3
-"88","Daniela Lopes Mendes",47
-"89","Daniela Nascimento Freitas",11
-"90","Danielle Araujo de Oliveira",13
-"91","Danny de Castro Soares",11
-"92","De Hur Amaro Calixto de Souza",1
-"93","Dickson Ansah Ribeiro Frempong",8
-"94","Diego Dias Rodrigues",52
-"95","Diego Lopes Fontes",10
-"96","Diogo Alves de Sousa",2
-"97","Dirk Feigl",1
-"98","Divino de Assis Junior",2
-"99","Djair Fiorillo Lopes",33
-"100","Edelamare Barbosa Melo",8
-"101","Edilson Barbosa da Silva",8
-"102","Edmar Natalino Vieira",9
-"103","Edmar Rodrigues Moraes Junior",77
-"104","Edmilton Pedro Borges",1
-"105","Edson Jose Dantas",25
-"106","Eduardo Augusto Oliveira Lobo",534
-"107","Eliane Araque dos Santos",6
-"108","Elisabete Baima Tavares",1
-"109","Eloisa Souza de Oliveira",4
-"110","Elson Fernando Costa Cumaru",1
-"111","Emannuela Oliveira Souza Queiroz",1
-"112","Emerson Matias de Abreu",100
-"113","Eneas Bazzo Torres",2
-"114","Enilda de Castro Sousa",1
-"115","Erika Oliveira Santos Nolli",40
-"116","Erlaine Maria Carvalho Silva",1
-"117","Evany de Oliveira Selva",4
-"118","Fabiano Ricardo Barbosa Pizetta",44
-"119","Fabio Correa Lara",5
-"120","Fabio Leal Cardoso",2
-"121","Fausto Vilas Boas Cardona",28
-"122","Felipe Andres Leon Garcia",41
-"123","Felipe de Magalhaes Castro dos Santos",193
-"124","Fernand Carlo de Sousa Neris",5
-"125","Fernanda Farias Machado Costa Ferreira",19
-"126","Fernando Antonio Benevides Gomes",1
-"127","Fernando Cleber Gusmao da Costa",9
-"128","Fernando Gomes Czech Furtado",10
-"129","Filipe de Mello Sampaio Cunha",21
-"130","Flavia Loureiro Pessoa Costa",5
-"131","Flavio Antonio de Oliveira",1
-"132","Flordelis Natividade T. Danciger",3
-"133","Francisca Maria da Luz Neta",60
-"134","Francisco Helio Firmino",91
-"135","Francisco Jose de Lima",23
-"136","Francisco Terra Filho",2
-"137","Frederico Knupp Augusto",2
-"138","Gabriel Joao Dimitrov Borborema",1
-"139","Gabriel Sacha de A Leao Goncalves Candido",5
-"140","Gabriela Seredinicki Mendes",30
-"141","Geysa Milhomem Rodrigues",2
-"142","Gilnara Pereira de Oliveira",9
-"143","Guilherme Henrique Suzano de Melo",1
-"144","Guilherme Monteiro Peixoto",5
-"145","Guilherme Moreira Serrado Ribeiro",1
-"146","Gustavo Ernani Cavalcanti Dantas",4
-"147","Gustavo Marcelino da Silva",224
-"148","Hailton Monteiro de Sa",1
-"149","Hanessa de Fatima da Cruz Moura",42
-"150","Helenice Miranda Cunha",4
-"151","Heloisa Maria Moraes Rego Pires",1
-"152","Helton Damaceno Monteiro de Barros",1
-"153","Helvidio de Aguiar Ferraz Filho",4
-"154","Henrique Vilalba Morais",45
-"155","Hugo Gabriel Soares Damasio",1
-"156","Isabel Cristina Mendonca de Oliveira",24
-"157","Isabela Medeiros Ramalho",6
-"158","Itallo Menezes de Souza",22
-"159","Ivana Auxiliadora Mendonca Santos",20
-"160","Ivana Patricia de Araujo Bezerra de Paula",3
-"161","Ivanildo das Chagas Lima",6
-"162","Ivy Stefany Vieira Flores",144
-"163","Izabel Cristina de Almeida Teles",4
-"164","Izac Ferreira da Silva",3
-"165","Izaias Dantas Freitas",43
-"166","Jacielle Cristhine da Silva Gomes",1
-"167","Jacqueline Alves Costa",15
-"168","Jair Barbosa da Silva",6
-"169","Jania Reffatti",2
-"170","Jaqueline da Silva Goncalves",1
-"171","Jeferson Luiz Pereira Coelho",1
-"172","Jessica Torres Manso Silva",6
-"173","Joao Carlos Alves Leles",1
-"174","Joao Luiz Marinho Junior",2
-"175","Joao Paulo Rodrigues da Silva",1
-"176","Joao Raimundo da Silva Rego",16
-"177","Jonathas Silva de Azevedo",2
-"178","Jorge Luis da Silva Aguiar",3
-"179","Jose Alves Pereira Filho",3
-"180","Jose Antonio Vieira de Freitas Filho",50
-"181","Jose de Lima Ramos Pereira",48
-"182","Jose Neto da Silva",21
-"183","Jose Roberto Alves de Oliveira",2
-"184","Jose Roberto de Almeida Junior",17
-"185","Josilene Pinto de Aguiar Gomes",28
-"186","Julia Silva Gomes",27
-"187","Julia Virginia dos Santos Pires Maciel",60
-"188","Juliana de Souza Garcia Maia",2
-"189","Juliana Garcia Machado",38
-"190","Juliana Lima de Brito",66
-"191","Junia Soares Nader",2
-"192","Karen Friedrich",9
-"193","Karina Akemi Sawada",4
-"194","Kelma Cordeiro Barreto",267
-"195","Kenia Viviane Cardoso Ferreira",7
-"196","Laudimila Rita da Conceicao Marques",26
-"197","Lauriberto Maximo Alves",54
-"198","Layrce de Lima",69
-"199","Leandro de Mello Iglezias",27
-"200","Leomar Daroncho",1
-"201","Leonardo de Araujo Brandao",1
-"202","Levy Carlos Caixeta de Sa",1177
-"203","Livia Gardenia Silva Rego Brito",16
-"204","Lorena de Faria Sena",29
-"205","Luana Maria Vieira",1
-"206","Luciane Moreira Lima",44
-"207","Luciano Aragao Santos",38
-"208","Luciano Souza Zanzoni",29
-"209","Lucinea Alves Ocampos",2
-"210","Ludmila Reis Brito Lopes",27
-"211","Luis Augusto Alves de Lima",62
-"212","Luis Fernando Rabello Taveira",1
-"213","Luise Brandalise Rossi",8
-"214","Luiz Claudio Barbosa Lucas",46
-"215","Luiz da Silva Flores",30
-"216","Luiz Eduardo Guimaraes Bojart",98
-"217","Maciel Carlos Antunes",42
-"218","Manoel Amilton Lopes Alves",2
-"219","Manoel Jorge e Silva Neto",2
-"220","Marcel Moreira Magalhaes",31
-"221","Marcelo Cortes Berquo",3
-"222","Marcelo Goncalves de Aquino",7
-"223","Marcelo Iglesias Barreira",3
-"224","Marcelo Manera",24
-"225","Marcia Aparecida Carvalho Grade Vallejo",1
-"226","Marcia de Almeida Pereira Elmiro",5
-"227","Marcia Regina Guiotti Bomfim",1
-"228","Marcio Amazonas Cabral de Andrade",37
-"229","Marcio de Aguiar Ribeiro",1
-"230","Marcio Guillardi da Silva",15
-"231","Marcio Lacerda de Azevedo",2
-"232","Marco Antonio Badanhan",178
-"233","Marco Kanegae Saraiva",14
-"234","Marco Oliveira Silva",1
-"235","Marcony de Almeida Oliveira",219
-"236","Margareth Rodrigues Noblat",22
-"237","Maria Adelaide Cassia Silva",3
-"238","Maria Aparecida Gugel",40
-"239","Maria Cristina da S. Neves de Castro",4
-"240","Maria da Gloria Martins dos Santos",2
-"241","Maria Ivanir Fonseca Tomasi",2
-"242","Maria Jose Diniz Ferreira",1
-"243","Maria Marli Pereira Gomes",74
-"244","Mariana Michetti Souza",41
-"245","Mariana Pimentel Mascarenhas",14
-"246","Marlice Patricia Silva Lima",106
-"247","Marlu da Silva Santos",1
-"248","Marluzia Silva Pinheiro",49
-"249","Mauricio Correia de Mello",4
-"250","Mauricio Ferreira Brito",28
-"251","Mayara Sousa Bandeira de Almeida",84
-"252","Melissa Gomes da Silva",4
-"253","Michel Madureira Loures de Souza",4
-"254","Miguel Angelo Marcolan",23
-"255","Miguel Caetano Martins",556
-"256","Mirian Barbosa Guedes Brandao",5
-"257","Nadia Abu Ghanem",12
-"258","Nelson Luiz Monteiro da Silva Boiteux",1
-"259","Nilmar Rodrigues de Freitas",38
-"260","Nilton Cesar Cordeiro Pereira",174
-"261","Nina Menegale Bianchetti",173
-"262","Norma Mendes Lisboa",11
-"263","Nubia Ribeiro Lacerda de Araujo",48
-"264","Ocineide Rodrigues dos Santos Albuquerque",47
-"265","Oksana Maria Dziura Boldo",50
-"266","Olga de Carvalho Guimaraes",64
-"267","Onildo Nicktowysk L. F. Sa Menezes",68
-"268","Patricia de Lemos Stchelkunoff",12
-"269","Patricia Leme da Silva Carrijo",1
-"270","Patricia Rambo",64
-"271","Paula Noemi Takaki",8
-"272","Paulo Borges da Fonseca Seger",1
-"273","Paulo Henrique Petres",1
-"274","Paulo Roberto Barcelos",6
-"275","Paulo Roberto de Lima",2
-"276","Pedro Andre Lins Carneiro",11
-"277","Pedro Henrique Freitas Machado",1
-"278","Pedro Jose dos Santos",2
-"279","Pedro Luiz Goncalves Serafim da Silva",71
-"280","Priscilla Cavalcante Elias Grintzos",112
-"281","Priscilla Fernanda Cremer Francisco",2
-"282","Rafael Dias Marques",1
-"283","Rafael Ramos Santana",14
-"284","Rafaela Alvim Barbosa",2
-"285","Raimundo Rodrigues Leite",102
-"286","Reginaldo Antunes da Silva",2
-"287","Renato de Sousa Lacerda",1
-"288","Ricardo Augusto de Andrade Franco",130
-"289","Ricardo Jose Macedo de Britto Pereira",23
-"290","Ricardo Vaz Gomes Bastos",127
-"291","Roberto Sheldon de Jesus Silva",47
-"292","Rodrigo de Oliveira e Silva",1
-"293","Rodrigo dos Santos",2
-"294","Rodrigo Fernandes Morais",44
-"295","Rogerio Ferreira de Jesus",385
-"296","Rogerio Figueiredo Franco",66
-"297","Rogerio Rodriguez Fernandez Filho",3
-"298","Rogerio Veiga Lima",144
-"299","Romeu Ribeiro Marques da Fonseca",2
-"300","Romulo Alves Neres de Barros",61
-"301","Ronaldo Curado Fleury",24
-"302","Ronaldo Tolentino da Silva",3
-"303","Roney Jose da Silva",4
-"304","Rosana Vieira dos Santos",4
-"305","Samela Sales Lemos",1
-"306","Samy Staretz",1
-"307","Sandra Lia Simon",3
-"308","Sandra Marlicy de Souza Faustino",44
-"309","Sandra Regina Gomes",1
-"310","Sandra Sueli do Nascimento Maruno",42
-"311","Sara Fernandes Figueiredo",4
-"312","Saulo Queiroz Borges",3
-"313","Sebastiao Vieira Caixeta",1
-"314","Sergio de Sousa Cordeiro",14
-"315","Sergio Guimaraes Abe",4
-"316","Sergio Sousa de Oliveira",7
-"317","Silvia Claudia de Menezes Cobelo",11
-"318","Silvio Amorim de Assis",40
-"319","Simone Beatriz Assis de Rezende",1
-"320","Simone de Oliveira Cabral Linares",36
-"321","Simone Filgueiras de Paula Santos",60
-"322","Sinval de Melo Monteiro Junior",1
-"323","Sinval Pedrosa de Almeida Filho",12
-"324","Soraya Tabet Souto Maior",2
-"325","Stefany Langamer de Paula",3
-"326","Suely Vilela de Assis",1
-"327","Susana do Monte Lima",10
-"328","Tatiana Nogueira Rocha Clementino Luedemann",1
-"329","Teresa Cristina Aires de Assis",17
-"330","Thaisa Carolina Alves Silva",28
-"331","Thaise Martins Fernandes Bessa",2
-"332","Tharlen Jose Nolasco do Nascimento",2
-"333","Thiago Barros dos Santos",63
-"334","Valquiria Faria Goncalves",25
-"335","Vanessa Christina Alves Fernandes",62
-"336","Vanessa Diniz Garcia",5
-"337","Vera Regina Della Pozza Reis",8
-"338","Vera Reyjane Rodrigues Lima Ribeiro",5
-"339","Veronica Guimaraes Rodrigues Medeiros",126
-"340","Victor Saboia da Silva",1
-"341","Vinicius Pinto Correa",36
-"342","Vitor de Lucena Pires",1
-"343","Wanderlei Valeriano de Sales",11
-"344","Warlen Soares Ferreira",9
-"345","Weslei Gomes de Sousa",79
-"346","Wiliam Sebastiao Bedone",29
-"347","Willian Teixeira Evangelista",26
-"348","Yvone Cristina Oliveira de Deus",14
-"349","Zelia Leite Brasil de Carvalho",2
-"350","Zenilda Nunes da Mata",11
-"351","Zilda Ondina Almeida de Lima",5
+"","responsavel","ano","bensMovimentados"
+"1","AACF","2017",9
+"2","AACF","2018",3
+"3","AACF","2019",25
+"4","AACM","2020",7
+"5","AACSF","2018",8
+"6","AAMC.P","2019",6
+"7","AAMC.P","2020",1
+"8","AAS","2018",1
+"9","AAS","2020",6
+"10","AASJ","2018",1
+"11","ABB","2019",61
+"12","ABB","2020",5
+"13","ABMF","2019",2
+"14","AC","2018",4
+"15","AC","2019",3
+"16","ACBL","2019",1
+"17","ACFC","2019",4
+"18","ACFC","2020",1
+"19","ACM","2019",3
+"20","ACMAV","2018",3
+"21","ACMAV","2019",2
+"22","ACRO","2019",4
+"23","ACS","2017",6
+"24","ACS","2018",90
+"25","ACS","2019",9
+"26","ACS","2020",1
+"27","AFL","2019",21
+"28","AGCM","2018",4
+"29","AGCM","2019",36
+"30","AGCM","2020",1
+"31","AIR","2019",1
+"32","AJ","2018",1
+"33","AJ","2019",4
+"34","ALA","2019",1
+"35","ALIR","2017",146
+"36","ALIR","2018",241
+"37","ALIR","2019",333
+"38","ALIR","2020",26
+"39","ALO","2019",1
+"40","ALRC","2017",37
+"41","ALRC","2018",6
+"42","ALRC","2019",3
+"43","ALS","2017",1
+"44","ALS","2018",10
+"45","ALS","2019",5
+"46","ALS","2020",1
+"47","ALVS","2018",2
+"48","ALVS","2019",2
+"49","AMB","2018",4
+"50","AMF","2018",1
+"51","AMF","2019",7
+"52","AMG","2019",1
+"53","AMGJ","2019",39
+"54","AMGJ","2020",1
+"55","AMLM","2017",1
+"56","AMLM","2018",82
+"57","AMLM","2019",31
+"58","AMTO","2019",257
+"59","AMTO","2020",1
+"60","AMV","2019",2
+"61","AMV","2020",33
+"62","ANRF","2018",8
+"63","ANRF","2019",7
+"64","APAF","2019",4
+"65","APPR","2019",30
+"66","APVB","2018",44
+"67","ARA","2018",2
+"68","ARCL","2019",8
+"69","ASM","2018",2
+"70","ASM","2019",27
+"71","ASM","2020",1
+"72","ASMB","2018",8
+"73","ASP","2018",9
+"74","ASP","2019",7
+"75","ASS","2019",9
+"76","AUSM","2017",1
+"77","AUSM","2018",3
+"78","BAM","2019",3
+"79","BFSO","2020",1
+"80","BSO","2018",248
+"81","BSO","2019",85
+"82","BSO","2020",1
+"83","CA","2018",6
+"84","CA","2019",4
+"85","CARB","2017",1
+"86","CARB","2018",1
+"87","CARB","2019",9
+"88","CAS","2018",136
+"89","CAS","2019",9
+"90","CAS","2020",4
+"91","CBA","2018",9
+"92","CBA","2019",10
+"93","CBL","2018",1
+"94","CDSM","2019",3
+"95","CGB","2018",3
+"96","CGB","2019",31
+"97","CGSS","2019",58
+"98","CHGS","2019",3
+"99","CHPC","2019",1
+"100","CIM","2019",8
+"101","CJR","2017",1
+"102","CJR","2018",3
+"103","CLC","2017",77
+"104","CLC","2018",5
+"105","CLC","2019",33
+"106","CMC","2018",2
+"107","CMCB","2019",5
+"108","CMO","2017",16
+"109","CMO","2018",4
+"110","CMO","2019",43
+"111","CMS","2019",1
+"112","CNJ","2018",11
+"113","CNJ","2019",1
+"114","COPA.P","2018",39
+"115","COPA.P","2019",2
+"116","CPS","2018",4
+"117","CPS","2019",79
+"118","CRC","2017",27
+"119","CRC","2018",95
+"120","CRC","2019",567
+"121","CRC","2020",2
+"122","CRFS","2018",4
+"123","CRFS","2019",3
+"124","CRN","2017",2
+"125","CRN","2019",22
+"126","CRS","2019",1
+"127","CSMSF","2018",5
+"128","CSMSF","2019",1
+"129","CSOAN","2018",71
+"130","CSOAN","2019",1
+"131","CSS","2017",28
+"132","CSS","2018",143
+"133","CSS","2019",8
+"134","DAJ","2018",1
+"135","DAJ","2019",1
+"136","DAO","2018",12
+"137","DAO","2020",1
+"138","DARF","2019",7
+"139","DARF","2020",1
+"140","DAS","2018",2
+"141","DCCP","2017",1
+"142","DCCP","2018",2
+"143","DCCP","2019",2
+"144","DCS","2019",11
+"145","DDR","2019",52
+"146","DF","2019",1
+"147","DFL","2017",1
+"148","DFL","2018",12
+"149","DFL","2019",27
+"150","DHACS","2019",1
+"151","DHM","2017",189
+"152","DHM","2018",96
+"153","DHM","2019",17
+"154","DHM","2020",12
+"155","DJV","2018",8
+"156","DLF","2018",4
+"157","DLF","2019",3
+"158","DLF","2020",3
+"159","DLL","2018",4
+"160","DLL","2019",1
+"161","DLM","2018",38
+"162","DLM","2019",9
+"163","DLPL","2017",3
+"164","DLRO","2017",2
+"165","DLRO","2019",58
+"166","DMMV","2018",4
+"167","DMMV","2019",25
+"168","DNF","2018",10
+"169","DNF","2019",1
+"170","DNV","2017",12
+"171","DNV","2019",34
+"172","EAOL","2018",28
+"173","EAOL","2019",509
+"174","EAS","2017",1
+"175","EAS","2018",1
+"176","EAS","2019",4
+"177","EBM","2018",1
+"178","EBM","2019",7
+"179","EBS","2018",3
+"180","EBS","2019",9
+"181","EBT","2018",1
+"182","EBT","2019",2
+"183","ECS","2017",1
+"184","EFCC","2019",1
+"185","EJD","2017",4
+"186","EJD","2018",20
+"187","EJD","2019",3
+"188","EMA","2018",87
+"189","EMA","2019",21
+"190","EMA","2020",1
+"191","EMCS","2020",1
+"192","ENV","2019",9
+"193","EOS","2018",2
+"194","EOS","2019",1
+"195","EOS","2020",1
+"196","EOSN","2017",4
+"197","EOSN","2018",14
+"198","EOSN","2019",40
+"199","EOSQ","2019",1
+"200","EPB","2018",1
+"201","ERMJ","2018",64
+"202","ERMJ","2019",26
+"203","ERMJ","2020",32
+"204","ESO","2018",3
+"205","ESO","2019",1
+"206","FABG","2018",1
+"207","FALG","2018",12
+"208","FALG","2019",22
+"209","FALG","2020",2
+"210","FAO","2020",1
+"211","FCGC","2017",1
+"212","FCGC","2018",7
+"213","FCGC","2019",1
+"214","FCL","2019",5
+"215","FCSN","2018",3
+"216","FCSN","2019",4
+"217","FFMCF","2018",12
+"218","FFMCF","2019",7
+"219","FGCF","2018",10
+"220","FGCF","2019",1
+"221","FHF","2019",28
+"222","FHF","2020",66
+"223","FJL","2017",1
+"224","FJL","2018",4
+"225","FJL","2019",24
+"226","FJL","2020",1
+"227","FKA","2019",1
+"228","FKA","2020",1
+"229","FLC","2018",2
+"230","FLPC","2017",1
+"231","FLPC","2018",3
+"232","FLPC","2019",4
+"233","FMCS","2018",7
+"234","FMCS","2019",77
+"235","FMLN","2018",4
+"236","FMLN","2019",56
+"237","FMSC","2018",10
+"238","FMSC","2019",11
+"239","FNT.D","2018",3
+"240","FRBP","2019",44
+"241","FTF","2018",2
+"242","FVBC","2018",19
+"243","FVBC","2019",34
+"244","GECD","2018",2
+"245","GECD","2019",1
+"246","GECD","2020",1
+"247","GHSM","2017",1
+"248","GJDB","2018",1
+"249","GMP","2018",4
+"250","GMP","2019",1
+"251","GMR","2018",1
+"252","GMR","2019",1
+"253","GMS","2019",229
+"254","GMS","2020",2
+"255","GMSR","2020",1
+"256","GPO","2018",2
+"257","GPO","2019",1
+"258","GPO","2020",7
+"259","GSALGC","2018",5
+"260","GSM","2017",9
+"261","GSM","2018",15
+"262","GSM","2019",6
+"263","HAFF","2018",2
+"264","HAFF","2019",4
+"265","HDMB","2019",1
+"266","HFCM","2017",4
+"267","HFCM","2018",26
+"268","HFCM","2019",63
+"269","HGSD","2019",1
+"270","HMC","2018",3
+"271","HMC","2019",1
+"272","HMMRP","2020",1
+"273","HMS","2019",1
+"274","HVM","2017",8
+"275","HVM","2018",22
+"276","HVM","2019",58
+"277","HVM","2020",14
+"278","IAMS","2017",40
+"279","IAMS","2018",7
+"280","IAMS","2019",1
+"281","ICAT","2018",4
+"282","ICL","2017",1
+"283","ICL","2018",4
+"284","ICL","2019",6
+"285","ICMO","2019",61
+"286","ICMO","2020",1
+"287","IDF","2018",34
+"288","IDF","2019",27
+"289","IFS","2017",2
+"290","IFS","2019",1
+"291","IMR","2019",6
+"292","IMS","2017",1
+"293","IMS","2018",11
+"294","IMS","2019",9
+"295","IMS","2020",1
+"296","IPABP","2018",2
+"297","IPABP","2019",1
+"298","ISVF","2018",14
+"299","ISVF","2019",142
+"300","ISVF","2020",1
+"301","JAC","2017",110
+"302","JAC","2018",9
+"303","JAC","2019",10
+"304","JAPF","2017",1
+"305","JAPF","2019",2
+"306","JAVFF","2019",50
+"307","JBS","2019",6
+"308","JCAL","2019",2
+"309","JCSG","2018",1
+"310","JGM","2018",38
+"311","JLB","2018",60
+"312","JLB","2019",5
+"313","JLB","2020",1
+"314","JLMJ","2019",1
+"315","JLMJ","2020",1
+"316","JLPC","2020",1
+"317","JLRP","2018",37
+"318","JLRP","2019",11
+"319","JLRP","2020",1
+"320","JLSA","2020",3
+"321","JNS","2018",60
+"322","JPAG","2018",28
+"323","JPAG","2019",1
+"324","JPRS","2019",1
+"325","JR","2018",1
+"326","JR","2019",1
+"327","JRAJ","2017",4
+"328","JRAJ","2018",12
+"329","JRAJ","2019",1
+"330","JRAO","2017",2
+"331","JRSR","2018",13
+"332","JRSR","2019",5
+"333","JSA","2020",2
+"334","JSG","2019",1
+"335","JSG","2020",27
+"336","JSGM","2018",2
+"337","JSN","2018",1
+"338","JSN","2019",2
+"339","JTMS","2019",6
+"340","JVSPM","2018",49
+"341","JVSPM","2019",12
+"342","KAS","2018",4
+"343","KCB","2019",474
+"344","KF","2018",8
+"345","KF","2019",1
+"346","KVCF","2018",7
+"347","LAAL","2019",63
+"348","LAB","2018",1
+"349","LAO","2018",1
+"350","LAO","2020",1
+"351","LAS","2019",37
+"352","LAS","2020",1
+"353","LBR","2018",3
+"354","LBR","2019",5
+"355","LCBL","2018",44
+"356","LCBL","2019",10
+"357","LCCS","2017",27
+"358","LCCS","2018",261
+"359","LCCS","2019",1161
+"360","LCCS","2020",182
+"361","LD","2018",1
+"362","LD","2019",1
+"363","LEGB","2017",72
+"364","LEGB","2018",4
+"365","LEGB","2019",32
+"366","LEGB","2020",1
+"367","LFRT","2019",1
+"368","LFS","2018",28
+"369","LFS","2019",12
+"370","LGSRB","2018",13
+"371","LGSRB","2019",12
+"372","LL","2017",34
+"373","LL","2018",41
+"374","LL","2019",297
+"375","LMA","2018",50
+"376","LMA","2019",6
+"377","LMI","2018",1
+"378","LMI","2019",1
+"379","LMI","2020",25
+"380","LML","2018",40
+"381","LML","2019",4
+"382","LMV","2018",1
+"383","LRBL","2019",27
+"384","LRCM","2017",16
+"385","LRCM","2018",4
+"386","LRCM","2019",16
+"387","LRCM","2020",1
+"388","LSF","2017",2
+"389","LSF","2018",10
+"390","LSF","2019",20
+"391","LSF","2020",1
+"392","LSZ","2018",7
+"393","LSZ","2019",28
+"394","MAB","2017",35
+"395","MAB","2018",70
+"396","MAB","2019",110
+"397","MAB","2020",2
+"398","MACA","2018",5
+"399","MACA","2019",35
+"400","MACA","2020",1
+"401","MACGV","2019",1
+"402","MACS","2019",3
+"403","MAG","2018",1
+"404","MAG","2019",40
+"405","MAG","2020",1
+"406","MALA","2019",2
+"407","MAM","2018",21
+"408","MAM","2019",9
+"409","MAO","2019",219
+"410","MAPE","2017",1
+"411","MAPE","2018",3
+"412","MAPE","2019",1
+"413","MAR","2019",1
+"414","Marcio Guillardi da Silva","2018",4
+"415","Marcio Guillardi da Silva","2019",11
+"416","MBGB","2017",1
+"417","MBGB","2018",3
+"418","MBGB","2019",1
+"419","MCA","2018",4
+"420","MCA","2019",38
+"421","MCB","2019",3
+"422","MCM","2017",96
+"423","MCM","2018",183
+"424","MCM","2019",319
+"425","MCM","2020",1
+"426","MCS.NC","2019",4
+"427","MFB","2019",28
+"428","MFB","2020",1
+"429","MGA","2018",3
+"430","MGA","2019",5
+"431","MGMS","2019",1
+"432","MGMS","2020",1
+"433","MGS","2019",1
+"434","MGS","2020",3
+"435","MIB","2019",3
+"436","MIFT","2019",4
+"437","MJDF","2017",1
+"438","MJSN","2018",1
+"439","MJSN","2020",1
+"440","MKS","2017",2
+"441","MKS","2018",13
+"442","MKS","2019",10
+"443","MLA","2019",2
+"444","MM","2017",2
+"445","MM","2018",8
+"446","MM","2019",42
+"447","MMLS","2018",3
+"448","MMLS","2019",2
+"449","MMM","2018",73
+"450","MMPG","2018",95
+"451","MMPG","2019",7
+"452","MMPG","2020",2
+"453","MMS","2018",38
+"454","MMS","2019",3
+"455","MOS","2019",1
+"456","MPM","2019",15
+"457","MPSL","2017",78
+"458","MPSL","2018",21
+"459","MPSL","2019",15
+"460","MRGB","2018",1
+"461","MRN","2017",1
+"462","MRN","2018",12
+"463","MRN","2019",9
+"464","MSBA","2019",84
+"465","MSP","2018",45
+"466","MSP","2019",4
+"467","MSS","2019",1
+"468","NAG","2017",4
+"469","NAG","2018",8
+"470","NCCP","2018",10
+"471","NCCP","2019",144
+"472","NLMSB","2019",1
+"473","NMB","2017",2
+"474","NMB","2018",1
+"475","NMB","2019",111
+"476","NMB","2020",122
+"477","NML","2019",11
+"478","NRF","2018",7
+"479","NRF","2019",32
+"480","NRLA","2019",48
+"481","OCG","2018",50
+"482","OCG","2019",10
+"483","OCG","2020",4
+"484","OMDB","2018",39
+"485","OMDB","2019",11
+"486","ONL.F.SM","2018",40
+"487","ONL.F.SM","2019",15
+"488","ONL.F.SM","2020",8
+"489","ORSA","2017",2
+"490","ORSA","2018",44
+"491","ORSA","2019",1
+"492","PALC","2018",11
+"493","PALC","2020",16
+"494","PBFS","2018",1
+"495","PCEG","2017",75
+"496","PCEG","2018",14
+"497","PCEG","2019",32
+"498","PFCF","2019",2
+"499","PHFM","2018",1
+"500","PHP","2018",1
+"501","PJS","2018",1
+"502","PJS","2020",1
+"503","PLGSS","2018",36
+"504","PLGSS","2019",35
+"505","PLS","2017",4
+"506","PLS","2018",7
+"507","PLS","2019",1
+"508","PLSC","2019",1
+"509","PNT","2018",5
+"510","PNT","2019",3
+"511","PR","2017",25
+"512","PR","2018",8
+"513","PR","2019",51
+"514","PRB","2018",2
+"515","PRB","2019",4
+"516","PRL","2018",2
+"517","RAAF","2018",133
+"518","RAB","2018",1
+"519","RAB","2020",1
+"520","RANB","2018",56
+"521","RANB","2019",5
+"522","RAS","2019",2
+"523","RCF","2017",1
+"524","RCF","2018",28
+"525","RCF","2019",12
+"526","RDM","2018",1
+"527","RFF","2018",66
+"528","RFJ","2017",173
+"529","RFJ","2018",197
+"530","RFJ","2019",24
+"531","RFM","2019",44
+"532","RJMBP","2018",49
+"533","RJMBP","2019",4
+"534","RJS","2017",1
+"535","RJS","2018",3
+"536","ROS","2017",1
+"537","RRFF","2018",2
+"538","RRFF","2020",1
+"539","RRL","2017",30
+"540","RRL","2018",2
+"541","RRL","2019",83
+"542","RRMF","2019",2
+"543","RRS","2017",7
+"544","RRS","2018",7
+"545","RRS","2019",1
+"546","RS","2019",2
+"547","RSJS","2017",2
+"548","RSJS","2018",40
+"549","RSJS","2019",16
+"550","RSL","2018",1
+"551","RTS","2018",2
+"552","RTS","2019",4
+"553","RVGB","2019",7
+"554","RVGB","2020",132
+"555","RVL","2018",140
+"556","RVL","2019",4
+"557","RVS","2018",3
+"558","RVS","2019",1
+"559","SAA","2017",2
+"560","SAA","2018",14
+"561","SAA","2019",39
+"562","SAA","2020",3
+"563","SBAR","2020",1
+"564","SCMC","2017",1
+"565","SCMC","2018",2
+"566","SCMC","2019",8
+"567","SFF","2019",4
+"568","SFPS","2017",2
+"569","SFPS","2018",93
+"570","SFPS","2019",35
+"571","SGA","2019",4
+"572","SLP","2019",3
+"573","SLS","2018",1
+"574","SLS","2019",1
+"575","SLS","2020",1
+"576","SML","2018",10
+"577","SMMJ","2019",1
+"578","SMSF","2020",44
+"579","SOCL","2018",36
+"580","SPAF","2018",5
+"581","SPAF","2019",11
+"582","SQB","2019",3
+"583","SRG","2018",1
+"584","SRG","2019",1
+"585","SS","2019",1
+"586","SSC","2018",5
+"587","SSC","2019",20
+"588","SSL","2019",1
+"589","SSNM","2017",11
+"590","SSNM","2018",6
+"591","SSNM","2019",43
+"592","SSO","2018",5
+"593","SSO","2019",2
+"594","STSM","2018",2
+"595","SVA","2019",1
+"596","SVC","2019",1
+"597","TBS","2018",62
+"598","TBS","2019",9
+"599","TCAA","2017",2
+"600","TCAA","2018",7
+"601","TCAA","2019",10
+"602","TCAS","2018",1
+"603","TCAS","2019",29
+"604","TJNN","2018",1
+"605","TJNN","2019",1
+"606","TMFB","2019",3
+"607","TNRCL","2019",1
+"608","VCAF","2017",1
+"609","VCAF","2018",20
+"610","VCAF","2019",83
+"611","VDG","2018",2
+"612","VDG","2019",3
+"613","VFG","2017",1
+"614","VFG","2018",18
+"615","VFG","2019",10
+"616","VFG","2020",1
+"617","VGRM","2017",53
+"618","VGRM","2018",16
+"619","VGRM","2019",32
+"620","VGRM","2020",25
+"621","VLP","2019",1
+"622","VPC","2018",14
+"623","VPC","2019",41
+"624","VRDPR","2018",7
+"625","VRDPR","2019",1
+"626","VRRLR","2018",4
+"627","VRRLR","2019",1
+"628","VSS","2019",1
+"629","WGS","2019",74
+"630","WGS","2020",5
+"631","WSB","2018",27
+"632","WSB","2019",1
+"633","WSB","2020",1
+"634","WSF","2018",7
+"635","WSF","2019",7
+"636","WTE","2018",7
+"637","WTE","2019",18
+"638","WTE","2020",8
+"639","WVS","2017",10
+"640","WVS","2018",2
+"641","YCOD","2017",3
+"642","YCOD","2018",9
+"643","YCOD","2019",38
+"644","ZLBC","2018",2
+"645","ZNM","2018",1
+"646","ZNM","2019",10
+"647","ZOAL","2017",2
+"648","ZOAL","2018",2
+"649","ZOAL","2019",1

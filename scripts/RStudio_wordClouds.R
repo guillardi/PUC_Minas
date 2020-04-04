@@ -115,7 +115,6 @@ wordcloud(words = d$word, freq = d$freq, min.freq = 1,
           max.words=200, random.order=FALSE, rot.per=0.35, 
           colors=brewer.pal(8, "Dark2"))
 # 
-# 
 barplot(d[1:30,]$freq, las = 2, names.arg = d[1:30,]$word,
         col ="lightblue", main ="Palavras mais Frequentes",
         ylab = "Frequência das Palavras")

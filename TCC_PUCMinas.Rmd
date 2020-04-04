@@ -3,6 +3,7 @@ title: "PUC Minas TCC"
 author: "Marcio Guillardi da Silva"
 date: "Março de 2020"
 output: html_document
+link: http://sillasgonzaga.com/material/curso_visualizacao/apresentacao-de-dados-com-relatorios.html
 ---
 
 ```{r setup, include=FALSE}
