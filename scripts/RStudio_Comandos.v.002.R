@@ -70,7 +70,7 @@ mpi <- mpi %>% mutate(responsavel = if_else(responsavel != "Marcio Guillardi da 
 #
 # Gravando o arquivo original com os dados dos servidores camuflados
 #
-write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+# write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
 # 
 # Mudando a ordem das colunas e alterando os nomes de algumas delas
 #
@@ -814,23 +814,18 @@ write.table(mpi$descricaoBem, file = "./data/ml.txt", sep = "\t",
 # 
 # 186 Ocorrências
 # 
-# 'SE' sala = "PROTOCOLO GERAL" 'OU' sala = "SEÇÃO DE ARQUIVO" &
-#      nivelSuperior = "SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO"
+# sala          = "PROTOCOLO GERAL" 'OU' sala = "SEÇÃO DE ARQUIVO"
+# nivelSuperior = "SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO"
 # 
-# LOGO sala = nivelSuperior + " ," + sala &
-#      nivelSuperior = "CNC, 08º ANDAR"
-#
-# mpi_bak <- mpi
-#
+# sala <- nivelSuperior + " ," + sala
+# nivelSuperior <- "ED. CNC, 08º ANDAR"
+# 
 mpi <- mpi %>% mutate(sala = if_else(sala == "PROTOCOLO GERAL" | sala == "SEÇÃO DE ARQUIVO",
-                                     paste(str_trim(nivelSuperior), sala, sep = ", "),
+                                     paste(nivelSuperior, sala, sep = ", "),
                                      str_trim(sala)),
                       nivelSuperior = if_else(nivelSuperior == "SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO",
-                                              "CNC, 08º ANDAR",
+                                              "ED. CNC, 08º ANDAR",
                                               nivelSuperior))
-#
-# mpi_teste <- mpi %>% filter(grepl("SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO,", sala))
-#
 #
 # mpi_teste <- mpi %>% filter(sala == "SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL")
 # 
@@ -844,9 +839,6 @@ mpi <- mpi %>% mutate(sala = if_else(sala == "PROTOCOLO GERAL" | sala == "SEÇÃ
 # 
 mpi <- mpi %>% mutate(sala = if_else(sala == "SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL",
                                      "SL. 403SS, SEÇÃO ARQUIVO CDI",
-                                     sala),
-                      sala = if_else(sala == "SECÃO DE ARQUIVO E MEMORIA INSTITUCIONAL - SWITCH",
-                                     "SL. 403SS, SEÇÃO ARQUIVO CDI - SWITCH",
                                      sala))
 #
 # 
@@ -869,11 +861,9 @@ mpi <- mpi %>% separate(sala, c("sala", "nivel1","nivel2", "nivel3"), sep = "(\\
 # nivel2 com 11.797 registros = NA 
 # nivel3 com 12.292 registros = NA  
 # 
-# 
 # Padronização da "sala" e dos níveis de detalhamento da sala para quando "sala" == "ED. CNC"
 # 
-# 'SE' sala = "ED. CNC"
-# LOGO nivel1 = nivel3
+# 'SE' sala == "ED. CNC" ~ (nivel1 <- nivel3)
 # 
 # Exemplo:
 # 
@@ -887,21 +877,19 @@ mpi <- mpi %>% separate(sala, c("sala", "nivel1","nivel2", "nivel3"), sep = "(\\
 # mpi_teste <- mpi %>% filter(nivel3 == TRUE)
 # mpi$nivel3[mpi$nivel3 == TRUE]
 # is.na(NA_character_)
-# 
-# mpi_bak <- mpi
 # mpi <- mpi_bak
-#
+# 
 mpi <- mpi %>% mutate(nivel1 = if_else(sala == "ED. CNC" & !is.na(nivel3),
                                        nivel3,
                                        nivel1),                  # IMUTÁVEL / Permanece com o seu conteúdo atual
-                      nivel3 = ifelse(sala == "ED. CNC" & !is.na(nivel3),
-                                      TRUE,                   # NA_character_,
+                      nivel3 = if_else(sala == "ED. CNC" & !is.na(nivel3),
+                                       "TRUE",                   # NA_character_,
                                       nivel3))
 #
+# mpi$nivel3[mpi$sala == "ED. CNC"] <- NA  
+# 
 #
-# 'SE' sala    = "ED. CNC" & 
-#      nivel2 != 'NA' 
-# LOGO sala = nivel2 (transformando("SALA Nº" -> "SL. Nº"))
+# 'SE' sala == "ED. CNC" 'E' nivel2 'DIFERENTE DE' 'NA' ~ sala <- nivel2 (transformando("SALA Nº" -> "SL. Nº"))
 # 
 # Exemplo:
 # 
@@ -910,20 +898,13 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "ED. CNC" & !is.na(nivel3),
 # mpi_teste <- filter(mpi, sala == "ED. CNC")
 # 
 # (3.695 Registros)
-#
-# mpi_bak <- mpi
-# mpi <- mpi_bak
 # 
 mpi <- mpi %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2),
                                      str_replace_all(nivel2, "SALA Nº", "SL. Nº"),
-                                     sala))
-#
-mpi[which(mpi$nivel3 == TRUE),]$nivel2 <- NA_character_
-#
-# 
-# mpi_teste <- mpi %>% filter(!is.na(nivel2))
-# mpi_teste <- mpi %>% filter(nivel3 == TRUE)
-# 
+                                     sala),
+                      nivel2 = if_else(nivel3 == TRUE,
+                                       NA_character_,
+                                       nivel2))
 #
 # Apagando a variável/coluna "nivel3"
 #
@@ -950,27 +931,20 @@ mpi <- mpi %>% mutate(sala = gsub("^(SL\\.)([^[:space:]])","\\1 Nº \\2", sala))
 # 'SE' sala  == "SALA 604B1 RECEPÇÃO DA TI" LOGO
 #      sala   = "SL. Nº 604B1" &
 #      nivel1 = "RECEPÇÃO DO DEPART. DE TECNOLOGIA DA INFORMAÇÃO"
-#      nivel2 = NA
 #
 # mpi_teste <- mpi %>% filter(sala =="SALA 604B1 RECEPÇÃO DA TI")
 # 
 # 11 Registros
 # 
-# mpi_bak <- mpi
-# 
 mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
                                        "RECEPÇÃO DO DEPART. DE TECNOLOGIA DA INFORMAÇÃO",
                                        nivel1),
-                      nivel2 = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
-                                       NA_character_,
-                                       nivel2),
                       sala = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
                                      "SL. Nº 604B1",
                                      sala))
 #
 #
-# 'SE' sala = "SL. 806A"
-# LOGO sala = "SL. Nº 806A"
+# sala == "SL. 806A" -> "SL. Nº 806A"
 # 
 # mpi_teste <- mpi %>% filter(grepl("^(SL\\.)([[:space:]])([^\\Nº])", sala))
 # 
@@ -979,6 +953,9 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
 mpi <- mpi %>% mutate(sala = gsub("^(SL\\.)([[:space:]])([^\\Nº])","SL. Nº\\2\\3", sala))
 #
 # 
+# nivelSuperior = CNC - TERREO. // sala = SL. Nº 001 - PROTOCOLO
+# 
+#
 # 'SE'   nivelSuperior == "CNC - TERREO." 
 # ‘LOGO’ nivel1 = "SL. Nº 001" &
 #        nivelSuperior = "PROTOCOLO GERAL ATENDIMENTO AO PUBLICO - DA"
@@ -987,13 +964,13 @@ mpi <- mpi %>% mutate(sala = gsub("^(SL\\.)([[:space:]])([^\\Nº])","SL. Nº\\2\
 #
 # 22 Registros
 # 
-mpi <- mpi %>% mutate(sala = if_else(grepl("CNC - TERREO\\.", nivelSuperior),
+mpi <- mpi %>% mutate(sala = if_else(grepl("CNC - TERREO.", nivelSuperior),
                                      "SL. Nº 001",
                                      sala),
-                      nivel1 = if_else(grepl("CNC - TERREO\\.", nivelSuperior),
+                      nivel1 = if_else(grepl("CNC - TERREO.", nivelSuperior),
                                        "PROTOCOLO GERAL ATENDIMENTO AO PUBLICO - DA",
                                        nivel1),
-                      nivelSuperior = if_else(grepl("CNC - TERREO\\.", nivelSuperior),
+                      nivelSuperior = if_else(grepl("CNC - TERREO.", nivelSuperior),
                                               "CNC, ANDAR TÉRREO",
                                               nivelSuperior)) # %>% filter(grepl("PROTOCOLO GERAL ATENDIMENTO AO PUBLICO - DA", nivel1))
 # 
@@ -1041,7 +1018,6 @@ for (rowNames in mpi_row) {
 # 11 Registros
 #
 mpi$sala[mpi$sala == "COPA 1"] <- "COPA 13"
-mpi[which(mpi$sala == "COPA 13"),]$nivel2 <- NA_character_
 #
 # 
 # 'SE' sala = "SANITÁRIOS E COPA"
@@ -1053,9 +1029,6 @@ mpi[which(mpi$sala == "COPA 13"),]$nivel2 <- NA_character_
 # mpi_teste <- mpi %>% filter(sala == "SANITÁRIOS E COPA")
 #
 # 440 Registros
-# 
-# mpi_bak <- mpi
-# mpi <- mpi_bak
 # 
 mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SANITÁRIOS E COPA",
                                        gsub("^(CNC, )", "\\2", nivelSuperior),
@@ -1082,14 +1055,11 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SANITÁRIOS E COPA",
 # 14 Registros
 # 
 mpi <- mpi %>% mutate(nivel1 = if_else(nivelSuperior == "SANITÁRIOS E COPA",
-                                       paste(gsub("^([A-Z]+)(\\s)([0-9])", "\\3", sala), "º ANDAR", sep = ""),
+                                       paste(gsub("^([A-Z]*)(\\s)([0-9]*)", "\\3", sala), "º ANDAR", sep = ""),
                                        nivel1),
                       nivelSuperior = if_else(nivelSuperior == "SANITÁRIOS E COPA",
-                                              paste("CNC, ",gsub("^([A-Z]+)(\\s)([0-9])", "\\3", sala), "º ANDAR", sep = ""),
+                                              paste("CNC, ",gsub("^([A-Z]*)(\\s)([0-9]*)", "\\3", sala), "º ANDAR"),
                                               nivelSuperior)) # %>% filter(grepl("COPA", sala))
-#
-# x <- "COPA 18"
-# paste("CNC, ",gsub("^([A-Z]+)(\\s)([0-9])", "\\3", x), "º ANDAR", sep = "")
 # 
 # x <- "COPA 18"
 # gsub("^([A-Z]*)(\\s)([0-9]*)", "\\3", x)
@@ -1143,31 +1113,27 @@ mpi <- mpi %>% mutate(nivel1 = gsub("^([0-9]*\\º)([A-Z]*)(\\.)", "\\1 \\2AR", n
 # 
 mpi <- mpi %>% mutate(sala = gsub("(\\º[A-Z]*\\.)", "\\2", sala)) # %>% filter(grepl("COPA", sala, fixed = TRUE))
 #
-mpi[which(grepl("[COPA]\\s[0-9]", mpi$sala)),]$nivel2 <- NA_character_
 # 
 # 'SE' nivelSuperior = "ED. CNC, nnº ANDAR"
 # LOGO nivelSuperior = "CNC, nnº ANDAR"
+# 
+# mpi_teste <- mpi %>% filter(grepl("^(ED. CNC. )", nivelSuperior))
 #
-# mpi_teste <- mpi %>% filter(grepl("^(ED. CNC\\,)", nivelSuperior))
-#
-# 3.631 Registros
+# 3.817 Registros
 #
 # x <- "ED. CNC, 12º ANDAR"
 #
-# gsub("^(ED. CNC\\,\\s)", "CNC, \\2", x)
+# gsub("^(ED. CNC. )", "CNC, \\2", x)
 # 
 # [1] "CNC, 12º ANDAR"
-#
-# mpi_bak <- mpi
-#
-mpi <- mpi %>% mutate(nivelSuperior = gsub("^(ED. CNC\\,\\s)", "CNC, \\2", nivelSuperior)) # %>% filter(grepl("CNC, ",nivelSuperior))
-#
 # 
+mpi <- mpi %>% mutate(nivelSuperior = gsub("^(ED. CNC. )", "CNC, \\2", nivelSuperior)) # %>% filter(grepl("CNC, ",nivelSuperior))
+#
+#
 # 
 # 'SE' sala = "MESAS PARA IMPRESSORAS DA SIMPRESS"
 # LOGO sala = "SL. Nº 604B" &
-#    nivel1 = "ASS. DTI - DP. TEC. DA INFORMAÇÃO" &
-#    nivel2 = "MESAS PARA IMPRESSORAS DA SIMPRESS" &
+#    nivel1 =  "MESAS PARA IMPRESSORAS DA SIMPRESS" &
 #    nivelSuperior = "CNC, 06º ANDAR"
 # 
 # mpi_teste <- mpi %>% filter(grepl("SL. 0604B", nivelSuperior))
@@ -1181,8 +1147,7 @@ mpi_row <- row.names(mpi[which(mpi$sala == "MESAS PARA IMPRESSORAS DA SIMPRESS")
 #
 for (rowNames in mpi_row) {
   mpi[rowNames,"sala"] = "SL. Nº 604B"
-  mpi[rowNames,"nivel1"] = "ASS. DTI - DP. TEC. DA INFORMAÇÃO"
-  mpi[rowNames,"nivel2"] = "MESAS PARA IMPRESSORAS DA SIMPRESS"
+  mpi[rowNames,"nivel1"] = "MESAS PARA IMPRESSORAS DA SIMPRESS"
   mpi[rowNames,"nivelSuperior"] = "CNC, 06º ANDAR"
 }
 # 
@@ -1192,9 +1157,6 @@ for (rowNames in mpi_row) {
 #                                      "SL. Nº 604B",
 #                                      sala),
 #                       nivel1 = if_else(nivelSuperior == "SL. 0604B, ASS. DTI - DP. TEC. DA INFORMAÇÃO",
-#                                        "ASS. DTI - DP. TEC. DA INFORMAÇÃO",
-#                                        nivel2),
-#                       nivel2 = if_else(nivelSuperior == "SL. 0604B, ASS. DTI - DP. TEC. DA INFORMAÇÃO",
 #                                        "MESAS PARA IMPRESSORAS DA SIMPRESS",
 #                                        nivel2),
 #                       nivelSuperior = if_else(nivelSuperior == "SL. 0604B, ASS. DTI - DP. TEC. DA INFORMAÇÃO",
@@ -1233,7 +1195,7 @@ mpi$nivel1[mpi$nivel1 == "ANDAR TERREO"] <- "ANDAR TÉRREO"
 # gsub("^(SL\\.\\s)(Nº\\s)(0)([^0])","\\1\\2\\4", x)
 #
 # [1] "SL. Nº 603"
-# 
+#   
 mpi <- mpi %>% mutate(sala = if_else(grepl("^(SL\\.\\s)(Nº\\s)(0)([^0])", sala),
                                      gsub("^(SL\\.\\s)(Nº\\s)(0)([^0])","\\1\\2\\4", sala),
                                      sala))
@@ -1245,6 +1207,10 @@ mpi <- mpi %>% mutate(sala = if_else(grepl("^(SL\\.\\s)(Nº\\s)(0)([^0])", sala)
 # mpi$sala[mpi$sala == "0603B"] <- "603B"
 # (...)
 # 
+
+
+
+
 # 
 # 'SE' nivelSuperior = "PGT" &
 #      salas = 
@@ -1273,7 +1239,7 @@ mpi <- mpi %>% mutate(sala = if_else(grepl("^(SL\\.\\s)(Nº\\s)(0)([^0])", sala)
 # mpi_teste <- mpi %>% filter(nivelSuperior == "PGT")
 #
 # 401 Registros 
-#
+# 
 varSalas <- c("SL. Nº 401C", "SL. Nº 801", "SL. Nº 807", "SL. Nº 1005", "SL. Nº 1005A", "SL. Nº 1007", "SL. Nº 1007A", "SL. Nº 1107",
               "SL. Nº 1107A", "SL. Nº 1108", "SL. Nº 1108A", "SL. Nº 1301", "SL. Nº 1301A", "SL. Nº 1501A", "SL. Nº 1506", "SL. Nº 0002",
               "SL. Nº 00002", "SL. Nº 00004", "ED. CNC", "CNC - TERREO.")
@@ -1297,54 +1263,21 @@ mpi <- mpi %>% mutate(nivelSuperior = if_else(nivelSuperior == "PGT",
 # match_ %in% varSalas          # Retorna TRUE
 # 
 # [1] TRUE
-#
 # 
-# 'SE' nivelSuperior = "PGT" & sala = "CNC"
-# LOGO sala   <- COPA + nn &
-#      nivelSuperior <- "CNC, nnº ANDAR"
-# 
-# nivel1 = "nnº ANDAR"
-# 
-# mpi_teste <- mpi %>% filter(sala == "CNC" & nivelSuperior == "PGT")
-#
-# 49 Registros
-# 
-# mpi_bak <- mpi
-# mpi <- mpi_bak
-# 
-mpi <- mpi %>% mutate(nivelSuperior = if_else((sala == "CNC" & nivelSuperior == "PGT"),
-                                              paste("CNC, ",gsub("^([0-9]*)(\\º)(\\s)([A-Z]*)", "\\1", nivel1), "º ANDAR", sep = ""),
-                                              nivelSuperior),
-                      sala = if_else((sala == "CNC"),
-                                     paste("COPA", gsub("^([0-9]*)(\\º)(\\s)([A-Z]*)", "\\1", nivel1), sep = " "),
-                                     sala)) # %>% filter(grepl("COPA", sala))
-# 
-# x <- "10º ANDAR"
-# 
-# paste("CNC, ",gsub("^([0-9]*)(\\º)(\\s)([A-Z]*)", "\\1", x), "º ANDAR", sep = "")
-#
-# [1] "CNC, 10º ANDAR"
-#
-# paste("COPA", gsub("^([0-9]*)(\\º)(\\s)([A-Z]*)", "\\1", x), sep = " ")
-#
-# [1] "10"
-#
-#
-# 'SE' nivel1 = "NA" & nivelSuperior = "CNC, "
-# LOGO nivel1 = "nnº ANDAR"
-# 
-# nivelSuperior <- "CNC, nnº ANDAR"
-# 
-# mpi_teste <- mpi %>% filter(is.na(nivel1) & grepl("CNC\\,\\s", nivelSuperior))
-#
-# 93 Registros
-#
-mpi <- mpi %>% mutate(sala = if_else(grepl("AREA TECNICA", sala, fixed = TRUE),
-                                     str_replace_all(sala, "AREA TECNICA", "ÁREA TÉCNICA"),
-                                     sala),
-                      nivel1 = if_else(is.na(nivel1) & grepl("CNC\\,\\s", nivelSuperior),
-                                       str_sub(nivelSuperior, start = 6),
-                                       nivel1)) # %>% filter(grepl("ÁREA TÉCNICA", sala, fixed = TRUE))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1363,7 +1296,21 @@ mpi <- mpi %>% mutate(sala = if_else(grepl("AREA TECNICA", sala, fixed = TRUE),
 # mpi_teste <- mpi %>% filter(grepl("([[A-z]]*)([-+])([0-9])",nivel3))
 #
 mpi <- mpi %>% mutate(nivel1 = gsub("([[A-z]]*)(\\S)([-+])([0-9])","\\1\\2 - \\4", nivel1))
-#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # 
 # Transformações Pontuais (pequenas quantidade de dados identificados)
 # 
@@ -1374,71 +1321,17 @@ mpi$nivel1[mpi$sala == "SL. Nº 101SS - SALA DE MONITORAMENTO"] <- "SALA DE MONI
 mpi$sala[mpi$sala == "SL. Nº 101SS - SALA DE MONITORAMENTO"] <- "SL. Nº 101SS"
 # 
 mpi$nivel1[mpi$sala == "SL. Nº 707 - DA - DL - SEÇÃO DE PATRIMÔNIO"] <- "SEÇÃO DE PATRIMÔNIO - DL"
-mpi$nivel2[mpi$sala == "SL. Nº 707 - DA - DL - SEÇÃO DE PATRIMÔNIO"] <- NA_character_
 mpi$sala[mpi$sala == "SL. Nº 707 - DA - DL - SEÇÃO DE PATRIMÔNIO"] <- "SL. Nº 707"
-# 
-mpi$nivel1[mpi$nivel1 == "RECEPÇÃO DTI - DP. TEC. DA INFORMAÇÃO"] <- "RECEPÇÃO DO DEPART. DE TECNOLOGIA DA INFORMAÇÃO"
-# 
-mpi$nivel1[mpi$sala == "CNC - TERREO."] <- "ANDAR TÉRREO"
-mpi$sala[mpi$sala   == "CNC - TERREO."] <- "CNC - TÉRREO"
-mpi$sala[mpi$sala   == "RECEPÇAO"] <- "CNC - TÉRREO"
-mpi$sala[mpi$sala   == "PORTARIA CNC"] <- "CNC - TÉRREO"
-mpi$sala[mpi$sala   == "ED. CNC"] <- "CNC - TÉRREO"
-mpi$nivel2[mpi$sala == "CNC - TÉRREO"] <- "PORTARIA CNC"
-# 
-mpi$nivel1[mpi$sala == "DEPÓS. - SUBSOLO"] <- "DEPÓSITO SEÇÃO DE PATRIMONIO - TI"
-mpi$nivelSuperior[mpi$sala == "DEPÓS. - SUBSOLO"] <- "CNC, 4º SUBSOLO"
-mpi$sala[mpi$sala == "DEPÓS. - SUBSOLO"] <- "SL. Nº 401SS"
-# 
-mpi$nivel1[mpi$sala == "DEPÓSITOS DO SETOR DE PATRIMÔNIO"] <- "DEPÓSITO SEÇÃO DE PATRIMONIO - TI"
-mpi$nivelSuperior[mpi$sala == "DEPÓSITOS DO SETOR DE PATRIMÔNIO"] <- "CNC, 4º SUBSOLO"
-mpi$sala[mpi$sala == "DEPÓSITOS DO SETOR DE PATRIMÔNIO"] <- "SL. Nº 401SS"
-#
-mpi$nivel1[mpi$nivel1 == "DEPÓSITO DA SEÇÃO DE PATRIMÔNIO"] <- "DEPÓSITO SEÇÃO DE PATRIMONIO"
-#
-mpi$nivel1[mpi$nivel1 == "DEPOSITO SEÇÃO DE PATRIMONIO - TI"] <- "DEPÓSITO SEÇÃO DE PATRIMONIO - TI"
-mpi$nivel1[mpi$nivel1 == "DEPOSITO SEÇÃO DE PATRIMONIO"] <- "DEPÓSITO SEÇÃO DE PATRIMONIO"
-# 
-mpi$nivel1[mpi$sala == "SANITÁRIOS"] <- "2º SUBSOLO"
-mpi$sala[mpi$sala   == "SANITÁRIOS"] <- "COPA 2SS"
-# 
-mpi$nivel1[mpi$sala == "COPA E LIMPEZA - DA"] <- "2º SUBSOLO"
-mpi$nivelSuperior[mpi$sala == "COPA E LIMPEZA - DA"] <- "CNC, 2º SUBSOLO"
-mpi$sala[mpi$sala == "COPA E LIMPEZA - DA"] <- "COPA 2SS"
-# 
-mpi$nivel1[mpi$sala == "VESTIÁRIO FEMININO"] <- "2º SUBSOLO"
-mpi$nivelSuperior[mpi$sala == "VESTIÁRIO FEMININO"] <- "CNC, 2º SUBSOLO"
-#
-mpi$nivel1[mpi$sala == "VESTIÁRIO MASCULINO"] <- "2º SUBSOLO"
-mpi$nivelSuperior[mpi$sala == "VESTIÁRIO MASCULINO"] <- "CNC, 2º SUBSOLO"
-# 
-mpi$nivel1[mpi$sala == "DEPÓSITO ASCOM"] <- "4º SUBSOLO"
-# 
-mpi$nivel1[mpi$sala == "DEPÓSITO DA SEÇÃO DE SERVIÇOS GERAIS - DL"] <- "4º SUBSOLO"
-# 
-mpi <- mpi %>% mutate(nivelSuperior = if_else((sala == "SL. Nº 402SS" | sala == "SL. Nº 401SS"),
-                                              "CNC, 4º SUBSOLO",
-                                              nivelSuperior))
-#
-mpi <- mpi %>% mutate(nivelSuperior = if_else(sala == "SL. Nº 203SS",
-                                              "CNC, 2º SUBSOLO",
-                                              nivelSuperior))
-#
-mpi <- mpi %>% mutate(nivelSuperior = if_else(sala == "BENS NA GARAGEM POR FALTA DE ESPAÇO",
-                                              "CNC, 4º SUBSOLO",
-                                              nivelSuperior),
-                      nivel1 = if_else(sala == "BENS NA GARAGEM POR FALTA DE ESPAÇO",
-                                       "DEPÓSITO SEÇÃO DE PATRIMONIO",
-                                       nivel1))
 # 
 mpi$nivel1[mpi$sala == "SL. Nº 302M CAIS/AREA ARMAZENAMENTO - DRH"] <- "CAIS/AREA ARMAZENAMENTO - DRH"
 mpi$sala[mpi$sala == "SL. Nº 302M CAIS/AREA ARMAZENAMENTO - DRH"] <- "SL. Nº 302M"
 # 
 mpi$nivel1[mpi$sala == "SL. Nº 504A CODEP/DRH"] <- "CODEP - DRH"
-mpi$nivel2[mpi$sala == "SL. Nº 504A CODEP/DRH"] <- NA_character_
 mpi$sala[mpi$sala == "SL. Nº 504A CODEP/DRH"] <- "SL. Nº 504A"
-#
-mpi$nivel1[mpi$nivel1 == "SETOR DE SUPORTE ELETRONICO CSU/DTI"] <- "SETOR DE SUPORTE ELETRÔNICO CSU/DTI"
+# 
+mpi$nivel1[mpi$sala == "DEPÓS. - SUBSOLO"] <- "DEPÓSITOS DO SETOR DE PATRIMÔNIO"
+mpi$sala[mpi$sala == "DEPÓS. - SUBSOLO"] <- "DEPÓSITOS DO SETOR DE PATRIMÔNIO"
+# 
 # 
 mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SL. Nº 802 DEOF-DEP.EXEC. ORÇAMENTÁRIA E FINANCEIRA",
                                        "DEP. EXEC. ORÇAMENTÁRIA E FINANCEIRA",
@@ -1446,9 +1339,10 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SL. Nº 802 DEOF-DEP.EXEC. ORÇA
                       sala = if_else(sala == "SL. Nº 802 DEOF-DEP.EXEC. ORÇAMENTÁRIA E FINANCEIRA",
                                      "SL. Nº 802",
                                      str_trim(sala)))
-
-
 # 
+
+
+
 # 
 # Padronizando a Descrição dos Gabinetes dos Procuradores (Assessorias e Gabinetes)
 # 
@@ -1464,7 +1358,7 @@ mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASSESSORIA GAB\\. DR\\.", nivel1),
                                        str_replace_all(nivel1, "ASSESSORIA GAB\\. DR\\.", "ASSESSORIA DR"),
                                        nivel1)) 
 # 
-mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASS\\. GAB DR", nivel1),
+mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASS. GAB DR", nivel1),
                                        str_replace_all(nivel1, "ASS\\. GAB DR", "ASSESSORIA DR"),
                                        nivel1)) 
 # 
@@ -1491,13 +1385,6 @@ mpi <- mpi %>% mutate(nivel1 = if_else(grepl("GABINETE DR\\.", nivel1),
 mpi <- mpi %>% mutate(nivel1 = if_else(grepl("GABINETE DRA\\.", nivel1),
                                        str_replace_all(nivel1, "GABINETE DRA\\.", "GABINETE DR"),
                                        nivel1)) 
-#
-mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASSESSORIA GABINETE DR", nivel1),
-                                       str_replace_all(nivel1, "GABINETE DRA\\.", "GABINETE DR"),
-                                       nivel1)) 
-#
-mpi$nivel1[mpi$nivel1 == "ASSESSORIA GABINETE DR ENEAS BAZZO TORRES - 29º OFICIO"] <- "ASSESSORIA DR ENEAS BAZZO TORRES - 29º OFICIO"
-
 # 
 # mpi_teste <- mpi %>% filter(grepl("JOSE NETO", nivel1))
 # 

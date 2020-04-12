@@ -70,7 +70,7 @@ mpi <- mpi %>% mutate(responsavel = if_else(responsavel != "Marcio Guillardi da 
 #
 # Gravando o arquivo original com os dados dos servidores camuflados
 #
-write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+# write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
 # 
 # Mudando a ordem das colunas e alterando os nomes de algumas delas
 #

@@ -37,3 +37,7 @@ AmeliaView()
 
 
 prop <- prop.table(table(mpi$sala))
+
+
+write_excel_csv2(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+
