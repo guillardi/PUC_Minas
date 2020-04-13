@@ -1,12 +1,12 @@
-# 
+#
 # PUC Minas - Ciência de Dados
 # Projeto Final - TCC 
 # Aluno: Marcio Guillardi da Silva
 # 
-rm(list = ls())
+# rm(list = ls())
 # 
 # Carregamento das Bibliotecas (library)
-# 
+#
 library(tidyverse)
 library(tidyr)
 library(lubridate)
@@ -21,7 +21,7 @@ library(ggthemes)
 #
 # Define a pasta/diretório de trabalho
 #
-setwd("C:/Users/Marcio/Dropbox (Pessoal)/TCC_PUCMinas/PUC_Minas")
+# setwd("C:/Users/Marcio/Dropbox (Pessoal)/TCC_PUCMinas/PUC_Minas")
 #
 # Lê o arquivo com todas as movimentações/completo (campos como STRINGS/CARACTERES)
 # 
@@ -70,7 +70,9 @@ mpi <- mpi %>% mutate(responsavel = if_else(responsavel != "Marcio Guillardi da 
 #
 # Gravando o arquivo original com os dados dos servidores camuflados
 #
-write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+# write_excel_csv2(mpi, here("data-raw", "movimentacoesPatrimoniaisInternas.csv"), na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+#
+# write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
 # 
 # Mudando a ordem das colunas e alterando os nomes de algumas delas
 #
@@ -138,46 +140,6 @@ mpiSumResponsavel <- mpi %>% group_by(responsavel, ano = as.factor(year(dataMovi
 #
 # (684 observações) / Total de bens movimentados por Responsável & Ano (SEM TRATAMENTO/ADEQUAÇÃO/PADRONIZAÇÃO)
 #
-# Pontos com legendas (caixa) / Formatado e Colorido
-#
-# nFiltro = 300
-# 
-# mpiSumResponsavel %>% filter(bensMovimentados > nFiltro) %>%
-#   ggplot(mapping = aes(x = responsavel, y = bensMovimentados, colour = responsavel)) +
-#   geom_point() + 
-#   theme(axis.text.x = element_text(angle = 90, size = 9), plot.title = element_text(hjust = 0.5), 
-#         panel.grid.major = element_line(colour = "grey50")) +
-#   labs(y = "Qtde de Bens Movimentados", x = "Responsável (Destino das Movimentações)") +
-#   ggtitle("Responsável x Quantidade de Bens Movimentados", subtitle = paste("(* Responsáveis com mais de ", nFiltro, " Bens Movimentados - ",
-#           gsub("(?!^)(?=(?:\\d{3})+$)", ".", 
-#                sum(mpiSumResponsavel[mpiSumResponsavel$bensMovimentados > nFiltro,]$bensMovimentados, na.rm=TRUE), 
-#                perl=T),
-#           " Bens Movimentados)")) +
-#   geom_label(
-#     label=filter(mpiSumResponsavel, bensMovimentados > nFiltro)[[2]], 
-#     nudge_x = 0.25, nudge_y = 0.25) +
-#   scale_color_discrete(name = "Responsáveis")   # Legenda Manual 
-#
-# Pontos com legendas (caixa)
-#
-# nFiltro = 300
-# 
-# mpiSumResponsavel %>% filter(bensMovimentados > nFiltro) %>%
-#   ggplot(aes(x = bensMovimentados, y = responsavel, group = responsavel)) + 
-#   geom_point() +
-#   theme_ridges() +
-#   labs(y = "Responsável (Destino das Movimentações)", x = "Quantidade de Bens Movimentados", 
-#       title = "Responsável x Quantidade de Bens Movimentados", 
-#       subtitle = paste("(* Responsáveis com mais de ", nFiltro, " Bens Movimentados - ",
-#                        gsub("(?!^)(?=(?:\\d{3})+$)", ".", 
-#                             sum(mpiSumResponsavel[mpiSumResponsavel$bensMovimentados > nFiltro,]$bensMovimentados, na.rm=TRUE), perl=T),
-#                        " Bens Movimentados)")) +
-#   geom_label(
-#     label=filter(mpiSumResponsavel, bensMovimentados > nFiltro)[[2]],   # Coluna Ano 
-#     nudge_x = 0.25, nudge_y = 0.25)
-#
-# REGEX: https://stackoverflow.com/questions/33195108/how-to-set-thousands-separator-in-r
-# gsub("(?!^)(?=(?:\\d{3})+$)", (...)
 # 
 # Só os pontos sem text_y  (MELHOR APÓS TODO TRATAMENTO DOS DADOS)
 #
@@ -229,16 +191,6 @@ mpiSumResponsavel %>% filter(bensMovimentados > nFiltro) %>%
   geom_text(check_overlap = TRUE)
 # theme_ridges(font_size = 12) #  +
 # 
-# mpiSumResponsavel %>% filter(bensMovimentados > nFiltro & 
-#                                       (responsavel == "ALIR" | responsavel == "LCCS" | 
-#                                          responsavel == "RVGB" | responsavel == "VCAF" | responsavel == "DHM")) %>%
-#   ggplot(mapping = aes(x = responsavel, y = bensMovimentados)) +
-#   geom_boxplot() + coord_flip() +geom_jitter(color = "red")
-# 
-#
-# theme_linedraw(base_size = 12) + 
-# theme_wsj(base_size = 11) + 
-# 
 # Removendo elementos do gráfico
 # 
 # https://rpubs.com/Mentors_Ubiqum/ggplot_remove_elements
@@ -254,14 +206,7 @@ mpiSumResponsavel %>% filter(bensMovimentados > nFiltro) %>%
 #
 nFiltro = 300
 #
-# Primeiro Filtro (Todos as movimentações de todos os anos)
-#
-# mpi_Filtro <- mpiSumResponsavel %>% 
-#   mutate_at(vars("ano"), as.character) %>% 
-#   ungroup(mpiSumResponsavel) %>% 
-#   filter(ano > "2017" & bensMovimentados > nFiltro)
-# 
-# Segundo Filtro (movimentações de todos os anos dos maiores responsáveis)
+#  Filtrando (movimentações de todos os anos dos maiores responsáveis)
 # 
 mpi_Filtro <- mpiSumResponsavel %>% 
   mutate_at(vars("ano"), as.character) %>% 
@@ -320,24 +265,6 @@ mpi_Filtro %>%
         panel.grid.major = element_line(colour = "grey50")) +
   geom_text(check_overlap = TRUE, 
             vjust = 0, position = position_stack(vjust = 0.5))
-# 
-# mpi_Filtro %>%
-#   ggplot(aes(x = mes, 
-#              y = movimentacoes, 
-#              fill = ano, 
-#              label = movimentacoes, vjust = "inward")) +
-#   geom_bar(stat = "Identity", position = "dodge") + # dodge (lado a lado) ou stack (um sobre o outro)
-#   labs(y = "Qtde de Movimentações", 
-#        x = "Período (Meses)",
-#        fill = "Anos") +
-#   ggtitle(paste("Movimentações por Mês", " - Ano(s): ", toString(levels(mpi_Filtro$ano)), 
-#                 "(", gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpi_Filtro$movimentacoes), perl=T),
-#                 " Movimentações)")) + 
-#   theme(axis.text.x = element_text(angle = 90, size = 10), 
-#         plot.title = element_text(hjust = 0.5), 
-#         panel.grid.major = element_line(colour = "grey50")) +
-#   geom_text(check_overlap = TRUE, 
-#             vjust = 0, position = position_dodge(0.9),)
 #
 # Filtrando o responsável, o ano e todos os meses respectivos com o somatório dos
 # bem movimentados
@@ -380,170 +307,20 @@ ggplot(mpi_Filtro,
 #  
 # [1] "61.04%"
 #  
-##################################################################################################
-# 
-# Sumarizado por por ano & mês (Com Filtro)
-# 
-################################################################################################## 
-#
 # http://adv-r.had.co.nz/Data-structures.html
 #
-# levels(mpiSumAnoMes$mes)[mpiSumAnoMes$mes]    # Retorna todos os níveis cadastrados
-# levels(mpiSumAnoMes$mes)                      # Retorna os níveis
-#
-# mpiSumAnoMes <- mpi %>% filter(year(dataMovimentacao) == "2018"|year(dataMovimentacao) == "2019") %>%
-# mpiSumAnoMes <- mpi %>% filter(year(dataMovimentacao) == "2018"|year(dataMovimentacao) == "2019") %>%
 # 
-# mpiSumAnoMes <- mpi %>% filter(year(dataMovimentacao) > 2010) %>%
-#   group_by(ano = as.factor(year(dataMovimentacao)),
-#            mes = month(dataMovimentacao, 
-#                        label = TRUE,  abbr = TRUE)) %>%
-#   tally(name = "movimentacoes") # ,sort = TRUE
-# 
-# mpiSumAnoMes <- mutate_at(mpiSumAnoMes, vars("ano"), as.character)
-# 
-# Gráfico de Pizza () - mês & ano (contacatenados)
-# 
-# pie(mpiSumAnoMes$movimentacoes, labels = paste(mpiSumAnoMes$mes, mpiSumAnoMes$ano, sep = " - "),
-#     main="Movimentações por Mes", 
-#     col = rainbow(12))
-# legend("topright",legend = paste(mpiSumAnoMes[[2]], mpiSumAnoMes[[1]], sep = " - "), cex = 0.8,
-#        fill = rainbow(12))
-#
-# Gráfico de Densidade
-# 
-# ggplot(mpiSumAnoMes, aes(x = mes, y = ano, group = ano)) + 
-#   geom_density_ridges(fill = "#00AFBB", scale = 2) +
-#   theme_ridges()
-#
-# Gráfico de Barras (Quando Dois ou mais anos, o grafico representa o total geral em cada barra)
-# 
-# ggplot(mpiSumAnoMes,
-#        aes(x = mpiSumAnoMes$mes, y = mpiSumAnoMes$movimentacoes, fill = mes, label = mpiSumAnoMes[[3]])) +
-#   geom_bar(stat = "Identity") +
-#   labs(y = "Qtde de Movimentações", x = "Responsável (Destino das Movimentações)") +
-#   ggtitle(paste("Movimentações por Mês", " - Ano(s): ", toString(levels(mpiSumAnoMes$ano)), "(", 
-#                 gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpiSumAnoMes$movimentacoes), perl=T),
-#                 " Movimentações)")) + 
-#   theme_calc(base_size = 12) + # theme_linedraw(base_size = 12) + # theme_wsj(base_size = 11) + 
-#   geom_text(check_overlap = TRUE)
-#
-# dodge (lado a lado) ou stack (um sobre o outro) - MELHOR QUANDO DOIS OU MAIS ANOS FILTRADOS
-#
-# ggplot(mpiSumAnoMes,
-#        aes(x = mpiSumAnoMes$mes, y = mpiSumAnoMes$movimentacoes, fill = ano, label = mpiSumAnoMes[[3]], vjust = "inward")) +
-#   geom_bar(stat = "Identity", position = "stack") + # dodge (lado a lado) ou stack (um sobre o outro)
-#   labs(y = "Qtde de Movimentações", x = "Responsável (Destino das Movimentações)") +
-#   ggtitle(paste("Movimentações por Mês", " - Ano: ", mpiSumAnoMes$ano[[1]][1], 
-#                 "(", gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpiSumAnoMes$movimentacoes), perl=T),
-#                 " Movimentações)")) + 
-#   theme_linedraw(base_size = 16) # + 
-# geom_text(check_overlap = TRUE)
-# 
-# Gráfico de Barras Sobreposto (Transposto de mpiSumAnoMes)
-#
-# https://www.r-graph-gallery.com/48-grouped-barplot-with-ggplot2.html
-# 
-# 
-# Criando um gráfico de barras sobreposto (Manual)
-# 
-# c1 <- t(mpiSumAnoMes)
-#
-# c1 <- data.frame("ano_2018" = c1["movimentacoes", 1:12], "ano_2019" = c1["movimentacoes", 13:24])
-# 
-# rownames(c1) <- mpiSumAnoMes[[2]][1:12]
-# 
-# c1 <- t(c1)
-# 
-# barplot(c1,
-#         col = c("#E69F00", "#56B4E9"))
-# legend("topright",                                    # Sdicionando uma legenda
-#        legend = c("2018", "2019"),
-#        fill = c("#E69F00", "#56B4E9"))
-#
-# http://adv-r.had.co.nz/Data-structures.html
-# http://adv-r.had.co.nz/Data-structures.html
-# http://adv-r.had.co.nz/Data-structures.html
-# http://adv-r.had.co.nz/Data-structures.html
-# http://adv-r.had.co.nz/Data-structures.html
-# http://adv-r.had.co.nz/Data-structures.html
-# http://adv-r.had.co.nz/Data-structures.html
-# http://adv-r.had.co.nz/Data-structures.html
-# 
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# 
-# Realizar uma análise das movimentações por período (de grandes valores)
-#
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-# mpi_bak <- mpi
-# 
-# meses <-  c("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")
-# 
-# anoAnalise <- 2019
-# 
-# for (indice in 1:12) { 
-#   #
-#   # indice <- 06
-#   # 
-#   mpi_sumarizado <- mpi %>% filter(year(dataMovimentacao) == anoAnalise & month(dataMovimentacao) == indice) %>%
-#     group_by(ano = year(dataMovimentacao), id, responsavel, cedente, sala) %>% summarize("contagem"= n())
-#     # group_by(ano = year(dataMovimentacao), id, responsavel, cedente, sala = str_sub(sala, end = 150) ) %>% summarize("contagem"= n())
-#   # 
-#   mpi_sumarizado <- mpi_sumarizado %>% filter(contagem > 10)
-#   #
-#   ggplot(mpi_sumarizado, aes(x = mpi_sumarizado$sala, y = mpi_sumarizado$contagem, fill = sala, label = mpi_sumarizado[[6]])) +
-#     geom_bar(stat = "Identity") +
-#     labs(y = "Qtde de Bens", x = "Sala Destino") +
-#     ggtitle(paste(meses[indice]," de ", mpi_sumarizado[[1]][1])) + theme_linedraw(base_size = 16) +
-#     theme(axis.text.x = element_text(angle = 90, size = 8), plot.title = element_text(hjust = 0.5), 
-#           panel.grid.major = element_line(colour = "grey50"), legend.position = "none") +
-#     geom_label()
-#   
-#   ggsave(paste("C:/Users/Marcio/Dropbox (Pessoal)/TCC_PUCMinas/PUC_Minas/images/GraficoBarras_RAW",indice, ".png"))
-#   # 
-# }
-# 
-# cat(dev.off())
-# 
-# sum(mpi_sumarizado$contagem)
-# 
-# 
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# 
-# Realizar uma análise das movimentações por período (de grandes valores)
-#
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#
-#
-#
-##################################################################################################
-#
-# Sumarizando por ano
-#
-##################################################################################################
-# 
-# mpiSumAno <- mpi %>% group_by(ano = year(dataMovimentacao)) %>% tally(name = "movimentacoes") # ,sort = TRUE
-# 
-# piepercent<- round(100 * mpiSumAno$movimentacoes/sum(mpiSumAno$movimentacoes), 1)
-# 
-# pie(mpiSumAno$movimentacoes, labels = piepercent, main="Movimentações (% por Ano)", col = rainbow(4))
-# legend("topright",legend = mpiSumAno[[1]], cex = 0.8,
-#     fill = rainbow(4))
-#
-# Gráfico de Barras
-#
-# mpiSumAno %>% ggplot(aes(x = ano, y = movimentacoes, fill = ano)) +
-#   geom_bar(stat = "Identity") +
-#   labs(y = "Qtde de Movimentações", x = "Ano") +
-#   ggtitle("Movimentações por Ano") + theme_linedraw(base_size = 16)
-#
 ##################################################################################################
 # 
 # "inventario" == !NA: movimentação automática de grande quantidade de bens 
 #                      para ajuste de localidade de inventário/levantamento patrimonial
 #                      
 ################################################################################################## 
+#
+mpi_teste <- mpi %>% filter((responsavelCadastro == "ALIR" | 
+                                responsavelCadastro == "LCCS" | 
+                                responsavelCadastro == "RVGB"))
+#
 # 
 mpi <- mpi %>% filter(is.na(inventario))
 # 
@@ -581,7 +358,6 @@ mpi <- mpi %>% filter(!grepl("DESFAZIMENTO", sala, fixed = TRUE))
 # 
 # ... o campo "sala" indica: 
 #
-#
 # "UL VIRTUAL" e "UL GERAL"- movimentação de grande quantidade de bens para doação ou incorporação para posterior distribuição
 # 
 mpi <- mpi %>% filter(!grepl("UL VIRTUAL", sala, fixed = TRUE) &
@@ -605,7 +381,6 @@ mpi <- mpi %>% filter(!grepl("UL VIRTUAL", sala, fixed = TRUE) &
 # considerado que os responsáveis seriam sempre os mesmos e os patrimônios (tombamentos) estariam dentro de 
 # uma determinada faixa...
 # 
-
 mpi <- filter(mpi, !(tombamento >= 37827 &        # Dentro da faixa... 32827 ~ 38623
                        tombamento <= 38623 &
                        (responsavel == "DHM" |
@@ -636,10 +411,9 @@ mpi <- filter(mpi, !(tombamento >= 36843 &        # Dentro da faixa... 36843 ~ 3
 # (17.971 Registros)
 # (976 Registros ignorados)
 #
-#
 # Aquisição de livros para a Biblioteca. As transferências foram efetivadas pelos gestores do Setor de Patrimônio.
 # 
-# Selecionando aquelas MPIs que movimentaram mais de 10 itens, aumentando a margem de confiança nos dados. 
+# Selecionando aquelas MPIs que movimentaram mais de 10 itens. 
 # 
 mpi_count <- mpi %>% filter(responsavel == "VCAF" & 
                               grepl("BIBLIOTECA LIVROS", sala, fixed = TRUE) &
@@ -756,8 +530,8 @@ mpi <- mpi %>% filter(!(id %in% c(18255, 45637, 50062, 50407, 50901, 56374, 7274
 # mpiCountId_ <- mpi %>% count(id, name = "total", sort = TRUE)
 #                                                                * INDICA AS MOVIMENTAÇÕES QUE DEVERÃO SER IGNORADAS
 # view(mpi_teste <- mpi %>% filter(id=="73887")) # 419 Registros - SL. Nº 101B - DATACENTER (Mudança de Responsabilidade - MR)
-# view(mpi_teste <- mpi %>% filter(id=="56374")) # 300 Registros * Fornecimento de WEBCAM LOGITECH, C525 (INCORPORAÇÃO)
-# view(mpi_teste <- mpi %>% filter(id=="72982")) # 232 Registros * Recolhimento de WEBCAM LOGITECH, C525 (INCORPORAÇÃO)
+# view(mpi_teste <- mpi %>% filter(id=="56374")) # 300 Registros * SL. 401SS - Fornecimento de WEBCAM LOGITECH, C525 (INCORPORAÇÃO)
+# view(mpi_teste <- mpi %>% filter(id=="72982")) # 232 Registros * SL. 401SS - Recolhimento de WEBCAM LOGITECH, C525 (INCORPORAÇÃO)
 # view(mpi_teste <- mpi %>% filter(id=="37202")) # 207 Registros - SL. Nº 603A	CH. DP. INFRAESTRUTURA (MR)
 # view(mpi_teste <- mpi %>% filter(id=="12740")) # 168 Registros - SL. Nº 202SS	SALA DE MULTIPLO USO - GSI (MR)
 # view(mpi_teste <- mpi %>% filter(id=="69689")) # 159 Registros - SL. Nº 901	DIR. DAE - ARQUITETURA E ENGENHARIA (MR)
@@ -781,21 +555,6 @@ mpi <- mpi %>% filter(!(id %in% c(18255, 45637, 50062, 50407, 50901, 56374, 7274
 # 
 # (* Movimentações para incorporação de bens)
 # 
-# 
-# mpi_sumarizado_responsavel <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
-# 
-# (351 Observações)
-# 
-# ggplot(data = mpi_sumarizado_responsavel) + 
-#   geom_point(mapping = aes(x = responsavel, y = movimentacoes)) + theme(axis.text.x=element_blank(),
-#                                                                         axis.ticks.x=element_blank()) +
-#   labs(y = "Quantidade de Movimentaçõs", x = "Responsável (Destino das Movimentações)")
-# 
-# mpi_sumarizado_responsavel %>% filter(movimentacoes > 100) %>%
-#   ggplot(mapping = aes(x = responsavel, y = movimentacoes, colour=responsavel)) +
-#     geom_point() + theme(axis.text.x = element_text(angle = 90), plot.title = element_text(hjust = 0.5)) +
-#       labs(y = "Qtde de Movimentaçõs", x = "Responsável (Destino das Movimentações)") +
-#        ggtitle("Responsável x Quantidade de Movimentações", subtitle = "(* Mais de 100 Movimentações)")
 #
 ##################################################################################################
 #
@@ -806,9 +565,14 @@ mpi <- mpi %>% filter(!(id %in% c(18255, 45637, 50062, 50407, 50901, 56374, 7274
 write.table(mpi$descricaoBem, file = "./data/ml.txt", sep = "\t",
             row.names = FALSE, col.names = FALSE)
 #
+#
+##################################################################################################
+#
+# LIMPEZA E PADRONIZAÇÃO DOS DADOS
 # 
-# Operação para padronização/ajuste da sala, caso: "sala" == "PROTOCOLO GERAL" ou "sala" == "SEÇÃO DE ARQUIVO"
-# (* Houve um erro na classificação/descrição da árvore de dependência entre as salas e seu nível superior) 
+##################################################################################################
+#
+# Houve um erro na classificação/descrição da árvore de dependência entre as salas e seu nível superior
 #
 # mpi_teste <- mpi %>% filter(sala == "PROTOCOLO GERAL" | sala == "SEÇÃO DE ARQUIVO")
 # 
@@ -836,11 +600,10 @@ mpi <- mpi %>% mutate(sala = if_else(sala == "PROTOCOLO GERAL" | sala == "SEÇÃ
 # 
 # 116 Ocorrências
 # 
-# sala          = "SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL"
-# nivelSuperior = "CNC, 4º SUBSOLO"
+# 'SE' sala          = "SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL"
+# LOGO nivelSuperior = "CNC, 4º SUBSOLO"
 # 
 # sala <- "SL. 403SS, SEÇÃO ARQUIVO CDI"
-# 
 # 
 mpi <- mpi %>% mutate(sala = if_else(sala == "SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL",
                                      "SL. 403SS, SEÇÃO ARQUIVO CDI",
@@ -1163,7 +926,6 @@ mpi[which(grepl("[COPA]\\s[0-9]", mpi$sala)),]$nivel2 <- NA_character_
 mpi <- mpi %>% mutate(nivelSuperior = gsub("^(ED. CNC\\,\\s)", "CNC, \\2", nivelSuperior)) # %>% filter(grepl("CNC, ",nivelSuperior))
 #
 # 
-# 
 # 'SE' sala = "MESAS PARA IMPRESSORAS DA SIMPRESS"
 # LOGO sala = "SL. Nº 604B" &
 #    nivel1 = "ASS. DTI - DP. TEC. DA INFORMAÇÃO" &
@@ -1345,9 +1107,6 @@ mpi <- mpi %>% mutate(sala = if_else(grepl("AREA TECNICA", sala, fixed = TRUE),
                       nivel1 = if_else(is.na(nivel1) & grepl("CNC\\,\\s", nivelSuperior),
                                        str_sub(nivelSuperior, start = 6),
                                        nivel1)) # %>% filter(grepl("ÁREA TÉCNICA", sala, fixed = TRUE))
-
-
-
 # 
 # Inserir espaços antes e após o caracter "-" (travessão)
 # 
@@ -1446,8 +1205,6 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SL. Nº 802 DEOF-DEP.EXEC. ORÇA
                       sala = if_else(sala == "SL. Nº 802 DEOF-DEP.EXEC. ORÇAMENTÁRIA E FINANCEIRA",
                                      "SL. Nº 802",
                                      str_trim(sala)))
-
-
 # 
 # 
 # Padronizando a Descrição dos Gabinetes dos Procuradores (Assessorias e Gabinetes)
@@ -1497,7 +1254,6 @@ mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASSESSORIA GABINETE DR", nivel1),
                                        nivel1)) 
 #
 mpi$nivel1[mpi$nivel1 == "ASSESSORIA GABINETE DR ENEAS BAZZO TORRES - 29º OFICIO"] <- "ASSESSORIA DR ENEAS BAZZO TORRES - 29º OFICIO"
-
 # 
 # mpi_teste <- mpi %>% filter(grepl("JOSE NETO", nivel1))
 # 
@@ -1512,24 +1268,61 @@ mpi$nivel1[mpi$nivel1 == "ASSESSORIA GABINETE DR ENEAS BAZZO TORRES - 29º OFICI
 # mpi$dataConfirmacaoRecebimento = dmy_hm(mpi$dataConfirmacaoRecebimento)
 #
 # 
-# mpi_sumarizado_responsavel <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
+# mpi_sumarizado <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
 # 
 # Gravando arquivo sumarizado para Análise etc (CSV) para o Power BI / Tableau
 # 
 # write.csv(mpiSumResponsavel, file = ".\\data\\mpi_Sumarizado.csv", fileEncoding = "UTF-8")
+# 
 # write.csv(mpi, file = "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", fileEncoding = "UTF-8")
 # 
 # Pacote library(readr)
-# 
+#
 # write_excel_csv2(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
 # 
 # write_csv(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv")
 #
+#
+########################################################################################################################
+#
+# FINALIZADAS AS TRANSFORMAÇÕES, INÍCIO DA EXPLORAÇÃO DOS DADOS
 # 
+########################################################################################################################
+# 
+mpiSumarizadoResponsavel <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
+# 
+# (342 Observações)
+# 
+ggplot(data = mpiSumarizadoResponsavel) + 
+  geom_point(mapping = aes(x = responsavel, y = movimentacoes)) + theme(axis.text.x=element_blank(),
+                                                                        axis.ticks.x=element_blank()) +
+  labs(y = "Quantidade de Movimentaçõs", x = "Responsável (Destino das Movimentações)")
+
+mpiSumarizadoResponsavel %>% filter(movimentacoes > 100) %>%
+  ggplot(mapping = aes(x = responsavel, y = movimentacoes, colour=responsavel)) +
+  geom_point() + theme(axis.text.x = element_text(angle = 90), plot.title = element_text(hjust = 0.5)) +
+  labs(y = "Qtde de Movimentaçõs", x = "Responsável (Destino das Movimentações)") +
+  ggtitle("Responsável x Quantidade de Movimentações", subtitle = "(* Mais de 100 Movimentações)")
+
+#
+mpiSumarizadoGestores <- mpi %>% filter(responsavelCadastro == "ALIR" | responsavelCadastro == "LCCS" | responsavelCadastro == "RVGB" | responsavelCadastro == "VCAF" | responsavelCadastro == "DHM") %>%
+  group_by(responsavelCadastro, year(dataMovimentacao), month(dataMovimentacao)) %>% tally(name = "movimentacoes")
+
+#
+
+
+
+
+
+
+
+
+
+
+ 
 # ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK 
 # ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK 
 #
-
 # https://sites.icmc.usp.br/ehlers/stemp/praticas/node1.html
 
 
