@@ -27,9 +27,13 @@ library(ggthemes)
 # 
 # mpi = Movimentação Patrimonial Interna
 #
-mpi <- read.csv(".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", sep = ";", encoding = "UTF-8", stringsAsFactors = FALSE)
+mpi <- read_csv2(".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", 
+                 col_types = cols(id = "c", data = col_date(format = "%d/%m/%Y"), tombamento = "c", inventario = "c", 
+                                  dataConfirmacaoRecebimento = col_datetime(format = "%d/%m/%Y %H:%M")))
 #
 # (41.311 Registros)
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Substituindo/camuflando os dados dos servidores por suas iniciais.
 #
@@ -42,8 +46,6 @@ mpi <- mpi %>% mutate(responsavel = if_else(responsavel != "Marcio Guillardi da 
                       responsavelCadastro = if_else(responsavelCadastro != "Marcio Guillardi da Silva",
                                                     str_replace_all(gsub("([[:upper:]]?)([[:lower:]])","\\1", responsavelCadastro), " ", ""),
                                                     responsavelCadastro))
-# 
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # mpi_bak <- mpi
 # mpi <- mpi_bak
@@ -65,14 +67,13 @@ mpi <- mpi %>% mutate(responsavel = if_else(responsavel != "Marcio Guillardi da 
 # gsub("([[:upper:]]?)([[:lower:]])","\\1", "Marcio Guillardi da Silva")
 # [1] "M G  S"
 #
-# 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Gravando o arquivo original com os dados dos servidores camuflados
 #
-# write_excel_csv2(mpi, here("data-raw", "movimentacoesPatrimoniaisInternas.csv"), na = "NA", append = FALSE, delim = ";", quote_escape = "double")
-#
 # write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Mudando a ordem das colunas e alterando os nomes de algumas delas
 #
@@ -86,12 +87,14 @@ mpi <- mpi %>% select(id, responsavel, cedente, sala, nivelSuperior, tombamento,
 #
 # Transformando algumas colunas (tipos de dados)
 # 
-mpi = mpi %>% mutate(dataMovimentacao = dmy(dataMovimentacao))
-mpi = mpi %>% mutate(dataConfirmacaoRecebimento = dmy_hm(dataConfirmacaoRecebimento))
-mpi <- mutate_at(mpi, vars("tombamento","id","inventario"), as.character)
+# mpi = mpi %>% mutate(dataMovimentacao = dmy(dataMovimentacao))
+# mpi = mpi %>% mutate(dataConfirmacaoRecebimento = dmy_hm(dataConfirmacaoRecebimento))
+# mpi <- mutate_at(mpi, vars("tombamento","id","inventario"), as.character)
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Leitura do arquivo geral de bens (patrimonios) para realizar a junção (left_join) dos arquivos (Recuperar a Descrição) 
-# 
+#
 bensPatrimoniais <- read.csv(".\\data-raw\\BensPorGrupo.csv", sep = ";", encoding = "UTF-8", stringsAsFactors = FALSE)
 # 
 bensPatrimoniais <- mutate_at(bensPatrimoniais, vars("tombamento"), as.integer)
@@ -104,18 +107,7 @@ bensPatrimoniais <- mutate_at(bensPatrimoniais, vars("tombamento"), as.integer)
 # 
 mpi <- mpi%>% mutate(descricaoBem = bensPatrimoniais$descricao[match(tombamento, bensPatrimoniais$tombamento)])
 #
-# str(mpi)
-#  
-# mpi_sumarizado <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes") # ,sort = TRUE
-# mpi_sumarizado <- mpi %>% group_by(responsavel) %>% count(responsavel) 
-# mpi_sumarizado <- mpi %>% group_by(responsavel) %>% summarize("movimentacoes"= n())
-# mpi_sumarizado <- mpi %>% group_by(ano = year(data)) %>% tally(name = "movimentacoes", sort = TRUE)
-# 
-#  (365 observações)
-# 
-# tally() é conveniente para resumir, que chamará n() ou soma (n).
-# count() é semelhante, mas chama group_by() antes e ungroup() depois. Se os dados já estiverem agrupados,
-# count() adiciona um grupo adicional que é removido posteriormente.
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 par(mfrow=c(1,1))   # Define a área de plotagem (1x1)
 # 
@@ -140,6 +132,18 @@ mpiSumResponsavel <- mpi %>% group_by(responsavel, ano = as.factor(year(dataMovi
 #
 # (684 observações) / Total de bens movimentados por Responsável & Ano (SEM TRATAMENTO/ADEQUAÇÃO/PADRONIZAÇÃO)
 #
+# mpiSumarizado <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes") # ,sort = TRUE
+# mpiSumarizado <- mpi %>% group_by(responsavel) %>% count(responsavel) 
+# mpiSumarizado <- mpi %>% group_by(responsavel) %>% summarize("movimentacoes"= n())
+# mpiSumarizado <- mpi %>% group_by(ano = year(data)) %>% tally(name = "movimentacoes", sort = TRUE)
+# 
+#  (365 observações)
+# 
+# tally() é conveniente para resumir, que chamará n() ou soma (n).
+# count() é semelhante, mas chama group_by() antes e ungroup() depois. Se os dados já estiverem agrupados,
+# count() adiciona um grupo adicional que é removido posteriormente.
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Só os pontos sem text_y  (MELHOR APÓS TODO TRATAMENTO DOS DADOS)
 #
@@ -164,6 +168,7 @@ mpiSumResponsavel %>% filter(bensMovimentados > nFiltro) %>%  # filter(bensMovim
 # 
 # theme(axis.title.y = element_blank())
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Gráfico de Barras
 # 
@@ -203,6 +208,7 @@ mpiSumResponsavel %>% filter(bensMovimentados > nFiltro) %>%
 # 
 # http://www.cookbook-r.com/Graphs/Legends_(ggplot2)/
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 nFiltro = 300
 #
@@ -240,8 +246,10 @@ mpi_Filtro %>%
         panel.grid.major = element_line(colour = "grey50")) +
   geom_text(check_overlap = TRUE)
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#
 # Filtrando um dos responsável pelo recebimento do maior número de bens 
-# 
+#
 mpi_Filtro <- mpi %>% filter(responsavel == "LCCS") %>%
   group_by(responsavel, ano = as.factor(year(dataMovimentacao)),
            mes = month(dataMovimentacao, 
@@ -265,6 +273,8 @@ mpi_Filtro %>%
         panel.grid.major = element_line(colour = "grey50")) +
   geom_text(check_overlap = TRUE, 
             vjust = 0, position = position_stack(vjust = 0.5))
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Filtrando o responsável, o ano e todos os meses respectivos com o somatório dos
 # bem movimentados
@@ -293,7 +303,6 @@ ggplot(mpi_Filtro,
         plot.title = element_text(hjust = 0.5), 
         panel.grid.major = element_line(colour = "grey50")) +
   geom_text(check_overlap = TRUE)
-#
 #  
 # sum(mpiSumResponsavel$bensMovimentados)
 # 
@@ -308,34 +317,29 @@ ggplot(mpi_Filtro,
 # [1] "61.04%"
 #  
 # http://adv-r.had.co.nz/Data-structures.html
-#
 # 
-##################################################################################################
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # "inventario" == !NA: movimentação automática de grande quantidade de bens 
 #                      para ajuste de localidade de inventário/levantamento patrimonial
-#                      
-################################################################################################## 
-#
-mpi_teste <- mpi %>% filter((responsavelCadastro == "ALIR" | 
-                                responsavelCadastro == "LCCS" | 
-                                responsavelCadastro == "RVGB"))
-#
 # 
 mpi <- mpi %>% filter(is.na(inventario))
 # 
 # (30.961 Registros) 
 # (10.350 Registros ignorados)
-# 
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 
 # 
 # Quando o cedente e o responsável são  as mesmas pessoas indica (normalmente) que houve uma movimentação de ajuste de localidade ou 
 # uma mudança em grande escala. Neste caso as movimentações não serão computadas para fins estatísticos, pois permanece sob a responsabilidade
 # da mesma pessoa.
 # 
-mpi <- mpi %>% filter(!(responsavel == cedente & year(dataMovimentacao) == 2019 & month(dataMovimentacao) == 6))
+mpi <- mpi %>% filter(!(responsavel == cedente & year(dataMovimentacao) == 2019 & (month(dataMovimentacao) == 6 | month(dataMovimentacao) == 7)))
 #
-# (30.806 Registros)
-# (155 Registros ignorados) 
+# (29.820 Registros)
+# ( 1.141 Registros ignorados) 
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # "BENS NÃO LOCALIZADOS...": bens não loalizados em diligências de inventários ou mudanças físicas de grande escala (NÃO serão considerados!)
 #
@@ -343,8 +347,10 @@ mpi <- mpi %>% filter(!(responsavel == cedente & year(dataMovimentacao) == 2019 
 # 
 mpi <- mpi%>% filter(!grepl("BENS NÃO LOCALIZADOS", sala, fixed = TRUE))
 #
-# (27.297 Registros)
+# (26.311 Registros)
 # (3.509 Registros exclídos)
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # ... o campo "nivelSuperior" indica: 
 # "DESFAZIMENTO..."- movimentação de grande quantidade de bens para doação (NÃO serão considerados!)
@@ -352,9 +358,10 @@ mpi <- mpi%>% filter(!grepl("BENS NÃO LOCALIZADOS", sala, fixed = TRUE))
 mpi <- mpi %>% filter(!grepl("DESFAZIMENTO", nivelSuperior, fixed = TRUE))
 mpi <- mpi %>% filter(!grepl("DESFAZIMENTO", sala, fixed = TRUE))
 # 
-# (22.971 Resitros)
-# (4.326 Registros excluídos)
+# (22.017 Resitros)
+# (4.294 Registros excluídos)
 # 
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # ... o campo "sala" indica: 
 #
@@ -363,9 +370,10 @@ mpi <- mpi %>% filter(!grepl("DESFAZIMENTO", sala, fixed = TRUE))
 mpi <- mpi %>% filter(!grepl("UL VIRTUAL", sala, fixed = TRUE) &
                         !grepl("UL GERAL", sala, fixed = TRUE))
 #
-# (20.700 Registros)
-# (2.271 Registros ignorados)
+# (19.776 Registros)
+# (2.241 Registros ignorados)
 # 
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Apagando movimentações temporárias de grande quantidade de bens (responsáveis temporários para conferência/incorporação de bens)
 #
@@ -387,7 +395,7 @@ mpi <- filter(mpi, !(tombamento >= 37827 &        # Dentro da faixa... 32827 ~ 3
                           responsavel == "LCCS" |
                           responsavel == "Marcio Guillardi da Silva")))
 # 
-# (18.947 Registros)
+# (18.023 Registros)
 # (1.753 Registros ignorados)
 # 
 # mpi_teste <- mpi[which(!(mpi$tombamento >= 37827 &
@@ -397,6 +405,7 @@ mpi <- filter(mpi, !(tombamento >= 37827 &        # Dentro da faixa... 32827 ~ 3
 #                              mpi$responsavel == "Marcio Guillardi da Silva"))
 #                         ),]
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Aquisição e incorporação de painéis divisórios individuais (baias) para todas as salas...
 # ... esses bens já existiam e foram incorporados aos bens patrimoniais da PGT e transferidos
@@ -408,8 +417,10 @@ mpi <- filter(mpi, !(tombamento >= 36843 &        # Dentro da faixa... 36843 ~ 3
                        tombamento <= 37817 &
                        cedente == "LCCS"))
 #
-# (17.971 Registros)
+# (17.047 Registros)
 # (976 Registros ignorados)
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Aquisição de livros para a Biblioteca. As transferências foram efetivadas pelos gestores do Setor de Patrimônio.
 # 
@@ -427,7 +438,7 @@ mpi_count <- mpi %>% filter(responsavel == "VCAF" &
 # 
 mpi <- mpi %>% filter(!(id %in% mpi_count$id)) # atomic vector
 # 
-# (16.969 Registros)
+# (16.045 Registros)
 # (1.002 Registros ignorados)
 #
 # 68819   310
@@ -446,10 +457,11 @@ mpi <- mpi %>% filter(!(id %in% mpi_count$id)) # atomic vector
 # 38790     1
 # 70247     1
 # 
-# 
-# Filtrando as movimentações que tenham mais de 9 itens movimentados...
-# ... em seguida verificando quais as movimentais possuem números patrimoniais em sequencia...
-# ... isso implica em dizer que os patrimonios, normalmente, foram transferidos (movimentados)
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#
+# Filtrando as movimentações que tenham mais de 5 itens movimentados...
+# ... em seguida verificando quais as movimentais possuem números patrimoniais em sequencia.
+# Isso implica em dizer que os patrimonios, normalmente, foram transferidos (movimentados)
 # após sua incorporação (tombamento) ou, de outra forma, são bens transferidos de gestor/responsável.
 # 
 mpi_total <- mpi %>% filter(cedente == "LCCS" | 
@@ -486,7 +498,7 @@ for (mpiId in mpi_total$id) {
   }
 }
 #
-# (16.124 Registros)
+# (15.200 Registros)
 # (845 Registros ignorados)
 #
 # [1] 384 (Movimentações filtradas/excluídas)
@@ -512,21 +524,17 @@ for (mpiId in mpi_total$id) {
 # [1] 10
 #
 # 
-##################################################################################################
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Movimentações de bens diversos para tombamento e distribuição (envio e recolhimento)
-#
-##################################################################################################
 #
 # mpi_bak <- mpi_bak %>% filter(id %in% c(56374, 72982, 18255, 45637))
 #
 mpi <- mpi %>% filter(!(id %in% c(18255, 45637, 50062, 50407, 50901, 56374, 72744, 72982)))
 # 
-# (15.687 Registros)
+# (14.763 Registros)
 # (437 Registros ignorados)
 #
-# Identificando grandes movimentações (MPIs)
-# 
 # mpiCountId_ <- mpi %>% count(id, name = "total", sort = TRUE)
 #                                                                * INDICA AS MOVIMENTAÇÕES QUE DEVERÃO SER IGNORADAS
 # view(mpi_teste <- mpi %>% filter(id=="73887")) # 419 Registros - SL. Nº 101B - DATACENTER (Mudança de Responsabilidade - MR)
@@ -550,32 +558,25 @@ mpi <- mpi %>% filter(!(id %in% c(18255, 45637, 50062, 50407, 50901, 56374, 7274
 # view(mpi_teste <- mpi %>% filter(id=="50901")) # 098 Registros * SL. Nº 707B SEÇÃO DE PATRIMONIO  - RECOLHIMENTO DE BENS  (MR)
 # view(mpi_teste <- mpi %>% filter(id=="72744")) # 098 Registros * SL. Nº 707B SEÇÃO DE PATRIMONIO  - RECOLHIMENTO DE BENS  (MR)
 # 
-# view(mpi_teste <- mpi %>% filter(id %in% c(56374, 72982, 18255, 45637))) # 103 Registros - SL. Nº 002	SEÇÃO DE TRANSPORTE - GSI (MR)
-# view(mpi_teste <- mpi %>% filter(id == 45637)) # 103 Registros - SL. Nº 002	SEÇÃO DE TRANSPORTE - GSI (MR)
-# 
-# (* Movimentações para incorporação de bens)
-# 
-#
-##################################################################################################
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # Gravando um arquivo com a descrição dos bens para elaborar uma Nuvem de Palavras
 # 
-##################################################################################################
-#
 write.table(mpi$descricaoBem, file = "./data/ml.txt", sep = "\t",
             row.names = FALSE, col.names = FALSE)
 #
 #
-##################################################################################################
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # LIMPEZA E PADRONIZAÇÃO DOS DADOS
-# 
-##################################################################################################
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+# 
 # Houve um erro na classificação/descrição da árvore de dependência entre as salas e seu nível superior
 #
 # mpi_teste <- mpi %>% filter(sala == "PROTOCOLO GERAL" | sala == "SEÇÃO DE ARQUIVO")
-# 
+# mpi_teste <- mpi %>% filter(grepl("SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO,", sala))
+#  
 # 186 Ocorrências
 # 
 # 'SE' sala = "PROTOCOLO GERAL" 'OU' sala = "SEÇÃO DE ARQUIVO" &
@@ -592,9 +593,9 @@ mpi <- mpi %>% mutate(sala = if_else(sala == "PROTOCOLO GERAL" | sala == "SEÇÃ
                       nivelSuperior = if_else(nivelSuperior == "SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO",
                                               "CNC, 08º ANDAR",
                                               nivelSuperior))
+
 #
-# mpi_teste <- mpi %>% filter(grepl("SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO,", sala))
-#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # mpi_teste <- mpi %>% filter(sala == "SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL")
 # 
@@ -612,6 +613,7 @@ mpi <- mpi %>% mutate(sala = if_else(sala == "SEÇÃO DE ARQUIVO E MEMORIA INSTI
                                      "SL. 403SS, SEÇÃO ARQUIVO CDI - SWITCH",
                                      sala))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Dividindo a coluna "SALA" em três níveis de detalhamento: nº da sala + 3 níveis (formato chr / caracter)
 # 
@@ -632,6 +634,7 @@ mpi <- mpi %>% separate(sala, c("sala", "nivel1","nivel2", "nivel3"), sep = "(\\
 # nivel2 com 11.797 registros = NA 
 # nivel3 com 12.292 registros = NA  
 # 
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Padronização da "sala" e dos níveis de detalhamento da sala para quando "sala" == "ED. CNC"
 # 
@@ -661,6 +664,7 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "ED. CNC" & !is.na(nivel3),
                                       TRUE,                   # NA_character_,
                                       nivel3))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # 'SE' sala    = "ED. CNC" & 
 #      nivel2 != 'NA' 
@@ -683,6 +687,7 @@ mpi <- mpi %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2),
 #
 mpi[which(mpi$nivel3 == TRUE),]$nivel2 <- NA_character_
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # mpi_teste <- mpi %>% filter(!is.na(nivel2))
 # mpi_teste <- mpi %>% filter(nivel3 == TRUE)
@@ -692,11 +697,9 @@ mpi[which(mpi$nivel3 == TRUE),]$nivel2 <- NA_character_
 #
 mpi <- mpi %>% select(-nivel3)
 #
-#################################################################################################### 
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Substituição de caracteres no campo "SALA" - Padronizando os nomes
-# 
-####################################################################################################
 # 
 # mpi <- mutate_at(mpi, vars("sala"), as.factor)
 # str(mpi)
@@ -709,6 +712,7 @@ mpi <- mpi %>% select(-nivel3)
 #
 mpi <- mpi %>% mutate(sala = gsub("^(SL\\.)([^[:space:]])","\\1 Nº \\2", sala))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # 'SE' sala  == "SALA 604B1 RECEPÇÃO DA TI" LOGO
 #      sala   = "SL. Nº 604B1" &
@@ -718,8 +722,6 @@ mpi <- mpi %>% mutate(sala = gsub("^(SL\\.)([^[:space:]])","\\1 Nº \\2", sala))
 # mpi_teste <- mpi %>% filter(sala =="SALA 604B1 RECEPÇÃO DA TI")
 # 
 # 11 Registros
-# 
-# mpi_bak <- mpi
 # 
 mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
                                        "RECEPÇÃO DO DEPART. DE TECNOLOGIA DA INFORMAÇÃO",
@@ -731,6 +733,7 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
                                      "SL. Nº 604B1",
                                      sala))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # 'SE' sala = "SL. 806A"
 # LOGO sala = "SL. Nº 806A"
@@ -741,6 +744,7 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
 # 
 mpi <- mpi %>% mutate(sala = gsub("^(SL\\.)([[:space:]])([^\\Nº])","SL. Nº\\2\\3", sala))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE'   nivelSuperior == "CNC - TERREO." 
 # ‘LOGO’ nivel1 = "SL. Nº 001" &
@@ -759,6 +763,8 @@ mpi <- mpi %>% mutate(sala = if_else(grepl("CNC - TERREO\\.", nivelSuperior),
                       nivelSuperior = if_else(grepl("CNC - TERREO\\.", nivelSuperior),
                                               "CNC, ANDAR TÉRREO",
                                               nivelSuperior)) # %>% filter(grepl("PROTOCOLO GERAL ATENDIMENTO AO PUBLICO - DA", nivel1))
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' nivel1 = "ROLL"
 # LOGO sala   = nivel1 &
@@ -794,7 +800,8 @@ for (rowNames in mpi_row) {
 #                             nivel1 = if_else(grepl("ROLL", sala, fixed = TRUE),
 #                                              str_sub(nivelSuperior, gregexpr(pattern = ",", nivelSuperior, fixed = TRUE)[[1]][1]+2, str_length(nivelSuperior)),
 #                                              nivel1))
-#
+#                                              
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # 'SE' sala = "COPA 1" 
 # LOGO sala = "COPA 13"
@@ -806,6 +813,7 @@ for (rowNames in mpi_row) {
 mpi$sala[mpi$sala == "COPA 1"] <- "COPA 13"
 mpi[which(mpi$sala == "COPA 13"),]$nivel2 <- NA_character_
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' sala = "SANITÁRIOS E COPA"
 # LOGO sala   <- COPA + ANDAR &
@@ -816,9 +824,6 @@ mpi[which(mpi$sala == "COPA 13"),]$nivel2 <- NA_character_
 # mpi_teste <- mpi %>% filter(sala == "SANITÁRIOS E COPA")
 #
 # 440 Registros
-# 
-# mpi_bak <- mpi
-# mpi <- mpi_bak
 # 
 mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SANITÁRIOS E COPA",
                                        gsub("^(CNC, )", "\\2", nivelSuperior),
@@ -835,6 +840,7 @@ mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SANITÁRIOS E COPA",
 #
 # [1] "18"
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' nivelSuperior = "SANITÁRIOS E COPA"
 # LOGO nivel1        = nnº ANDAR &
@@ -859,6 +865,7 @@ mpi <- mpi %>% mutate(nivel1 = if_else(nivelSuperior == "SANITÁRIOS E COPA",
 # 
 # [1] "18"
 # 
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' nivelSuperior = "CNC, 03ºAND." 
 # LOGO nivelSuperior = "CNC, 03º ANDAR"
@@ -875,6 +882,7 @@ mpi <- mpi %>% mutate(nivel1 = if_else(nivelSuperior == "SANITÁRIOS E COPA",
 # 
 mpi <- mpi %>% mutate(nivelSuperior = gsub("([º])(AND)(\\.)+","\\1 \\2AR", nivelSuperior))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' nivel1 = "02ºAND."
 # LOGO nivel1 = nnº ANDAR &
@@ -890,6 +898,7 @@ mpi <- mpi %>% mutate(nivelSuperior = gsub("([º])(AND)(\\.)+","\\1 \\2AR", nive
 # 
 mpi <- mpi %>% mutate(nivel1 = gsub("^([0-9]*\\º)([A-Z]*)(\\.)", "\\1 \\2AR", nivel1)) # %>% filter(grepl("COPA", sala, fixed = TRUE))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # 'SE' sala = COPA nnºAND.
 # LOGO sala = COPA nn
@@ -907,6 +916,8 @@ mpi <- mpi %>% mutate(nivel1 = gsub("^([0-9]*\\º)([A-Z]*)(\\.)", "\\1 \\2AR", n
 mpi <- mpi %>% mutate(sala = gsub("(\\º[A-Z]*\\.)", "\\2", sala)) # %>% filter(grepl("COPA", sala, fixed = TRUE))
 #
 mpi[which(grepl("[COPA]\\s[0-9]", mpi$sala)),]$nivel2 <- NA_character_
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' nivelSuperior = "ED. CNC, nnº ANDAR"
 # LOGO nivelSuperior = "CNC, nnº ANDAR"
@@ -921,10 +932,9 @@ mpi[which(grepl("[COPA]\\s[0-9]", mpi$sala)),]$nivel2 <- NA_character_
 # 
 # [1] "CNC, 12º ANDAR"
 #
-# mpi_bak <- mpi
-#
 mpi <- mpi %>% mutate(nivelSuperior = gsub("^(ED. CNC\\,\\s)", "CNC, \\2", nivelSuperior)) # %>% filter(grepl("CNC, ",nivelSuperior))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' sala = "MESAS PARA IMPRESSORAS DA SIMPRESS"
 # LOGO sala = "SL. Nº 604B" &
@@ -935,7 +945,6 @@ mpi <- mpi %>% mutate(nivelSuperior = gsub("^(ED. CNC\\,\\s)", "CNC, \\2", nivel
 # mpi_teste <- mpi %>% filter(grepl("SL. 0604B", nivelSuperior))
 #
 # 10 Registros
-#
 # 
 mpi_row <- row.names(mpi[which(mpi$sala == "MESAS PARA IMPRESSORAS DA SIMPRESS"),])
 # 
@@ -963,6 +972,7 @@ for (rowNames in mpi_row) {
 #                                               "CNC, 06º ANDAR",
 #                                               nivelSuperior))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # 'SE' nivel1 = "ANDAR TERREO" 
 # LOGO nivel1 = "ANDAR TÉRREO"
@@ -978,11 +988,10 @@ mpi$nivel1[mpi$nivel1 == "ANDAR TERREO"] <- "ANDAR TÉRREO"
 #                                        nivel1)) %>% filter(nivel1 == "ANDAR TÉRREO")
 #
 # mpi$nivel1[which(mpi$nivel1 == "ANDAR TERREO")] <- "ANDAR TÉRREO"
-#
 # mpi[[5]][mpi$nivel1 == "ANDAR TERREO"] <- "ANDAR TÉRREO"
-#
 # mpi[mpi$nivel1 == "ANDAR TERREO",][5] <- "ANDAR TÉRREO"
 # 
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # 'SE' sala = "SL. Nº 0603"
 # LOGO sala = "SL. Nº 603"
@@ -1007,6 +1016,7 @@ mpi <- mpi %>% mutate(sala = if_else(grepl("^(SL\\.\\s)(Nº\\s)(0)([^0])", sala)
 # mpi$sala[mpi$sala == "0603B"] <- "603B"
 # (...)
 # 
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' nivelSuperior = "PGT" &
 #      salas = 
@@ -1060,6 +1070,7 @@ mpi <- mpi %>% mutate(nivelSuperior = if_else(nivelSuperior == "PGT",
 # 
 # [1] TRUE
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # 'SE' nivelSuperior = "PGT" & sala = "CNC"
 # LOGO sala   <- COPA + nn &
@@ -1070,9 +1081,6 @@ mpi <- mpi %>% mutate(nivelSuperior = if_else(nivelSuperior == "PGT",
 # mpi_teste <- mpi %>% filter(sala == "CNC" & nivelSuperior == "PGT")
 #
 # 49 Registros
-# 
-# mpi_bak <- mpi
-# mpi <- mpi_bak
 # 
 mpi <- mpi %>% mutate(nivelSuperior = if_else((sala == "CNC" & nivelSuperior == "PGT"),
                                               paste("CNC, ",gsub("^([0-9]*)(\\º)(\\s)([A-Z]*)", "\\1", nivel1), "º ANDAR", sep = ""),
@@ -1091,6 +1099,7 @@ mpi <- mpi %>% mutate(nivelSuperior = if_else((sala == "CNC" & nivelSuperior == 
 #
 # [1] "10"
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # 'SE' nivel1 = "NA" & nivelSuperior = "CNC, "
 # LOGO nivel1 = "nnº ANDAR"
@@ -1107,6 +1116,8 @@ mpi <- mpi %>% mutate(sala = if_else(grepl("AREA TECNICA", sala, fixed = TRUE),
                       nivel1 = if_else(is.na(nivel1) & grepl("CNC\\,\\s", nivelSuperior),
                                        str_sub(nivelSuperior, start = 6),
                                        nivel1)) # %>% filter(grepl("ÁREA TÉCNICA", sala, fixed = TRUE))
+#
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Inserir espaços antes e após o caracter "-" (travessão)
 # 
@@ -1123,6 +1134,7 @@ mpi <- mpi %>% mutate(sala = if_else(grepl("AREA TECNICA", sala, fixed = TRUE),
 #
 mpi <- mpi %>% mutate(nivel1 = gsub("([[A-z]]*)(\\S)([-+])([0-9])","\\1\\2 - \\4", nivel1))
 #
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Transformações Pontuais (pequenas quantidade de dados identificados)
 # 
@@ -1255,62 +1267,59 @@ mpi <- mpi %>% mutate(nivel1 = if_else(grepl("ASSESSORIA GABINETE DR", nivel1),
 #
 mpi$nivel1[mpi$nivel1 == "ASSESSORIA GABINETE DR ENEAS BAZZO TORRES - 29º OFICIO"] <- "ASSESSORIA DR ENEAS BAZZO TORRES - 29º OFICIO"
 # 
-# mpi_teste <- mpi %>% filter(grepl("JOSE NETO", nivel1))
-# 
 #
 # mpi <- mutate_at(mpi, vars("sala"), as.factor); str(mpi); mpi <- mutate_at(mpi, vars("sala"), as.character)
 # 
 # sala: Factor w/ 368 levels 
-# 
-# Transformando campos data...
-# 
-# mpi = dmy(mpi$data)
-# mpi$dataConfirmacaoRecebimento = dmy_hm(mpi$dataConfirmacaoRecebimento)
 #
-# 
-# mpi_sumarizado <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
-# 
-# Gravando arquivo sumarizado para Análise etc (CSV) para o Power BI / Tableau
-# 
-# write.csv(mpiSumResponsavel, file = ".\\data\\mpi_Sumarizado.csv", fileEncoding = "UTF-8")
-# 
-# write.csv(mpi, file = "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", fileEncoding = "UTF-8")
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
 # Pacote library(readr)
 #
-# write_excel_csv2(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+# write_excel_csv2(mpi, ".\\data\\movimentacoesPGT.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
 # 
-# write_csv(mpi, "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv")
+# NÃO UTILIZAR: write.csv(mpi, file = "C:\\Users\\marcio\\Dropbox (Pessoal)\\TCC_PUCMinas\\PUC_Minas\\data\\movimentacoesPGT.csv", fileEncoding = "UTF-8")
 #
-#
-########################################################################################################################
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # FINALIZADAS AS TRANSFORMAÇÕES, INÍCIO DA EXPLORAÇÃO DOS DADOS
 # 
-########################################################################################################################
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # 
-mpiSumarizadoResponsavel <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes")
+mpiSumResponsavel <- mpi %>% group_by(responsavel) %>% tally(name = "movimentacoes") %>% 
+  arrange(movimentacoes)
 # 
 # (342 Observações)
+#
+# Gravando arquivo sumarizado para Análise etc (CSV) para o Power BI / Tableau
 # 
-ggplot(data = mpiSumarizadoResponsavel) + 
+# write_excel_csv2(mpiSumarizadoResponsavel, ".\\data\\mpiSumarizado.csv", na = "NA", append = FALSE, delim = ";", quote_escape = "double")
+# 
+# 
+ggplot(data = mpiSumResponsavel) + 
   geom_point(mapping = aes(x = responsavel, y = movimentacoes)) + theme(axis.text.x=element_blank(),
                                                                         axis.ticks.x=element_blank()) +
   labs(y = "Quantidade de Movimentaçõs", x = "Responsável (Destino das Movimentações)")
 
-mpiSumarizadoResponsavel %>% filter(movimentacoes > 100) %>%
+mpiSumResponsavel %>% filter(movimentacoes > 50) %>% arrange(movimentacoes) %>%
   ggplot(mapping = aes(x = responsavel, y = movimentacoes, colour=responsavel)) +
   geom_point() + theme(axis.text.x = element_text(angle = 90), plot.title = element_text(hjust = 0.5)) +
   labs(y = "Qtde de Movimentaçõs", x = "Responsável (Destino das Movimentações)") +
   ggtitle("Responsável x Quantidade de Movimentações", subtitle = "(* Mais de 100 Movimentações)")
 
 #
-mpiSumarizadoGestores <- mpi %>% filter(responsavelCadastro == "ALIR" | responsavelCadastro == "LCCS" | responsavelCadastro == "RVGB" | responsavelCadastro == "VCAF" | responsavelCadastro == "DHM") %>%
-  group_by(responsavelCadastro, year(dataMovimentacao), month(dataMovimentacao)) %>% tally(name = "movimentacoes")
+mpiSumGestores <- mpi %>% filter(responsavelCadastro == "LCCS" | responsavelCadastro == "RVGB") %>%
+  group_by(responsavelCadastro, ano = year(dataMovimentacao), mes = month(dataMovimentacao)) %>% tally(name = "movimentacoes")
+#
+mpiSumGestores %>%
+  ggplot(mapping = aes(x = responsavelCadastro, y = movimentacoes, colour=responsavelCadastro)) +
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 90), plot.title = element_text(hjust = 0.5)) +
+  labs(y = "Qtde de Movimentaçõs", x = "Gestor (Gestor  Movimentações)") +
+  ggtitle("Gestor x Quantidade de Movimentações", subtitle = "-")
+
 
 #
-
-
 
 
 
