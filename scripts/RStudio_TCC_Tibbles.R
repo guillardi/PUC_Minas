@@ -1391,121 +1391,110 @@ plot(mpiSumTS[,2:5], type = "o", main = "Todas as Movimetanções", sub = "Todo 
 #
 ggplot(mpi_ST, aes(x = mes, y = `Ano 2019`, group = 1)) +
   geom_line() +
-  geom_point()
+  theme(axis.text.x = element_text(size = 10), 
+        plot.title = element_text(hjust = 0.5), 
+        panel.grid.major = element_line(colour = "grey50")) +
+  labs(y = "Qtde de Bens Movimentados", x = "Meses") +
+  ggtitle("Quantidade de Bens Movimentados - Ano: 2019", 
+          subtitle = paste("(Bens Movimentados: ",
+                           gsub("(?!^)(?=(?:\\d{3})+$)", ".",
+                                sum(mpi_ST$`Ano 2019`, na.rm=TRUE), perl=T),")", sep = "")) +
+  geom_label(label = mpi_ST$`Ano 2019`)
 #
-# ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK 
-# ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK  ATE AQUI TUDO OK 
+#
+# Total de Movimentações Internas cadastradas (proporção de MPIs cadastradas por Responsável pelo cadastro)
+# 
+propMPIs <- mpi %>% group_by(responsavelCadastro, id) %>% tally() # %>% tally(name = "Freq")
+prop <- as.data.frame(prop.table(table(propMPIs$responsavelCadastro)))
+propTable <- as.data.frame(table(propMPIs$responsavelCadastro))
+#
+prop_teste <- left_join(prop, propTable, by = "Var1")
+#
+prop_teste <- mutate(prop_teste, Freq.x = Freq.x*100)
+#
+prop_teste %>% ggplot(aes(x = Var1, y = Freq.y)) +
+  geom_col(aes(fill = paste(Var1, "(", Freq.y, ")"))) +
+  geom_label(label = paste(format(prop_teste$Freq.x, digits=1, nsmall=2), "%", sep = ""), nudge_x = 0.25, nudge_y = 0.25) +
+  labs(y = "Movimentações Cadastradas", x = "Responsável pelo Cadastro", 
+       title = "Responsável x Quantidade de MPIs Cadastradas",
+       subtitle =  paste(gsub("(?!^)(?=(?:\\d{3})+$)", ".", 
+                              sum(prop_teste$Freq.y, na.rm=TRUE), perl=T),
+                         " MPIs Cadastradas"), 
+       fill = "Responsável Cadastro")
+#
+#
+# Total de Bens Cadastrados por MPI (TOP 10)
+#
+mpiSumMPIs <- mpi %>% group_by(ano = year(dataMovimentacao), mes = month(dataMovimentacao, label = TRUE), id, cedente, responsavel, sala) %>%
+  tally(name = "Bens") %>% ungroup() %>% 
+  mutate(percent = as.double(format(mpiSumMPIs$Bens / sum(mpiSumMPIs$Bens) * 100, digits=3, nsmall=3)))
+#
+sum(mpiSumMPIs$percent)
+#
+mpiSumMPIs <- mpiSumMPIs[order(mpiSumMPIs$Bens),]
+#
+# mpiSumMPIs <- mpiSumMPIs[mpiSumMPIs$Bens > 6,]
+#
+# Recuperando apenas as últimas 10 linhas do data frame
+#
+mpiSumMPIs <- tail(mpiSumMPIs, 10)
+#
+mpiSumMPIs %>% ggplot(aes(x = id, y = Bens)) +
+  geom_col(aes(fill = paste(id, "(", Bens, ")"))) +
+  geom_label(label = paste(format(mpiSumMPIs$percent, digits=1, nsmall=2), "%", sep = ""), nudge_x = 0.25, nudge_y = 0.25) +
+  labs(y = "Total de Bens Movimentados", x = "ID da MPI", 
+       title = "MPIs x Quantidade de Bens Movimentados (TOP 10)",
+       subtitle =  paste(gsub("(?!^)(?=(?:\\d{3})+$)", ".", 
+                              sum(mpiSumMPIs$Bens, na.rm=TRUE), perl=T),
+                         " MPIs Cadastradas"), 
+       fill = "ID da MPI")
+#
+#
+# Prop Tombamento/Bens Movimentados
+#
+prop <- as.data.frame(prop.table(table(mpi$tombamento)))
+#
+propTableMPI <- as.data.frame(table(mpi$tombamento))
+#
+prop_teste <- left_join(prop, propTableMPI, by = "Var1")
+#
+prop_teste <- mutate(prop_teste, Freq.x = Freq.x*100)
+#
+prop_teste <- prop_teste[order(prop_teste$Freq.y),]
+#
+# Filtrando os bens com mais de 6 movimentações
+#
+# prop_teste <- prop_teste[prop_teste$Freq.y > 6,]
+#
+# Recuperando apenas as últimas 10 linhas do data frame
+#
+prop_teste <- tail(prop_teste, 10)
+# 
+# Recuperando a descrição do bem patrimonial do arquivo geral de bens
+#
+prop_teste <- prop_teste %>% mutate(descricaoBem = 
+                                      gsub('([[:digit:]]+)(\\s)', "\\3", 
+                                           bensPatrimoniais$descricao[match(Var1, bensPatrimoniais$tombamento)]))
+#
+# Existem registro com números antes da descrição!
+# 
+# sala <- "04003341 POLTRONA GIRATORIA ESPALDAR MEDIO EM TECIDO"
+# 
+# gsub('([[:digit:]]+)(\\s)', "\\3", sala)
+# [1] "POLTRONA GIRATORIA ESPALDAR MEDIO EM TECIDO"
+# 
+# str_view(sala, '([[:digit:]]+)(\\s)')
+#
+#
+prop_teste %>% ggplot(aes(x = Var1, y = Freq.y)) +
+  geom_col(aes(fill = paste(descricaoBem, "(", Freq.y, ")"))) +
+  geom_label(label = paste(format(prop_teste$Freq.x, digits=1, nsmall=2), "%", sep = ""), nudge_x = 0.25, nudge_y = 0.25) +
+  labs(y = "Quantidade de Movimentações", x = "Número Patrimonial", 
+       title = "Bens Patrimoniais x Quantidade de Movimentações",
+       subtitle =  paste(gsub("(?!^)(?=(?:\\d{3})+$)", ".", 
+                              sum(prop_teste$Freq.y, na.rm=TRUE), perl=T),
+                         " Movimentações - ",
+                         format(sum(prop_teste$Freq.x), digits=2, nsmall=2), "% dos bens movimentados", sep = ""), 
+       fill = "Descrição do Bem ")
 #
 # 
-
-
-
-
-
-
-
-
-
-
-
-
-#
-# Radius / Circle 
-#
-install.packages("packcircles")
-install.packages("viridis")
-#
-library(packcircles)
-library(ggplot2)
-library(viridis)
-#
-# Create data
-# 
-data <- data.frame(group=paste("Group", letters[1:20]), value=sample(seq(1,100),20)) 
-#
-# Generate the layout
-# 
-packing <- circleProgressiveLayout(data$value, sizetype='area')
-packing$radius <- 0.95*packing$radius
-data <- cbind(data, packing)
-dat.gg <- circleLayoutVertices(packing, npoints=50)
-#
-length(packing)
-length(data)
-#
-# Plot 
-# 
-ggplot() + 
-  geom_polygon(data = dat.gg, aes(x, y, group = id, fill=id), colour = "black", alpha = 0.6) +
-  scale_fill_viridis() +
-  geom_text(data = data, aes(x, y, size=value, label = group), color="black") +
-  theme_void() + 
-  theme(legend.position="none")+ 
-  coord_equal()
-#
-# PERSONALIZADO
-#
-# Generate the layout
-# 
-mpiSumRadius <- mpi %>% group_by(responsavelCadastro, ano = year(dataMovimentacao), mes = month(dataMovimentacao)) %>% tally(name = "movimentacoes") %>% 
-  ungroup() %>%
-  # 
-  # Substituindo/camuflando os dados dos servidores por suas iniciais.
-  #
-  mutate(responsavelCadastro = gsub("(\\.)", "\\2", str_replace_all(gsub("([[:upper:]]?)([[:lower:]])","\\1", responsavelCadastro), " ", ""))) %>%
-  filter(movimentacoes > 9)
-# 
-packing <- circleProgressiveLayout(mpiSumRadius$movimentacoes, sizetype='area')
-packing$radius <- 0.95*packing$radius
-
-data <- as.data.frame(mpiSumRadius)
-
-data <- cbind(data, packing)
-dat.gg <- circleLayoutVertices(packing, npoints=50)
-
-length(packing)
-length(data)
-# 
-# Plot 
-# 
-ggplot() + 
-  geom_polygon(data = dat.gg, aes(x, y, group = id, fill=id), colour = "black", alpha = 0.6) +
-  scale_fill_viridis() +
-  geom_text(data = data, aes(x, y, size=movimentacoes, label = responsavelCadastro), color="black") +
-  theme_void() + 
-  theme(legend.position="none")+ 
-  coord_equal()
-
-
-
-
-
-#
-# Total por MPI (Agrupando por id)
-#
-mpiSum <- mpi %>% filter(year(dataMovimentacao) == 2019 & month(dataMovimentacao) == 10) %>%
-  group_by(ano = year(dataMovimentacao), mes = month(dataMovimentacao, label = TRUE), id, sala = str_sub(sala, end = 20) ) %>% 
-  summarize("contagem" = n()) %>% filter(contagem > 5)
-#
-ggplot(mpiSum, aes(x = mpiSum$sala, y = mpiSum$contagem, fill = sala, label = mpiSum[[5]])) +
-  geom_bar(stat = "Identity") +
-  labs(y = "Qtde de MPIs", x = "Sala Destino") +
-  ggtitle(paste(str_to_upper(mpiSum[[2]][1])," de ", mpiSum[[1]][1])) + theme_linedraw(base_size = 16) +
-  theme(axis.text.x = element_text(angle = 90, size = 8), plot.title = element_text(hjust = 0.5), 
-        panel.grid.major = element_line(colour = "grey50"), legend.position = "none") +
-  geom_label()
-#
-# Total Geral (sem agrupamento por id)
-#
-mpiSum <- mpi %>% filter(year(dataMovimentacao) == 2019 & month(dataMovimentacao) == 10) %>%
-  group_by(ano = year(dataMovimentacao), mes = month(dataMovimentacao, label = TRUE), sala = str_sub(sala, end = 20) ) %>% 
-  summarize("contagem" = n()) %>% filter(contagem > 5)
-# 
-ggplot(mpiSum, aes(x = mpiSum$sala, y = mpiSum$contagem, fill = sala, label = mpiSum[[4]])) +
-  geom_bar(stat = "Identity") +
-  labs(y = "Qtde de MPIs", x = "Sala Destino") +
-  ggtitle(paste(str_to_upper(mpiSum[[2]][1])," de ", mpiSum[[1]][1])) + theme_linedraw(base_size = 16) +
-  theme(axis.text.x = element_text(angle = 90, size = 8), plot.title = element_text(hjust = 0.5), 
-        panel.grid.major = element_line(colour = "grey50"), legend.position = "none") +
-  geom_label()
-  
