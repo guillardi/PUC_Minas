@@ -1451,11 +1451,18 @@ mpiSumMPIs %>% ggplot(aes(x = id, y = Bens)) +
 #
 #
 # Prop Tombamento/Bens Movimentados
+# 
+# Econtra a proporção (%) da quantidade de bens cadastrados / Soma de Bens Movimentados (4033)
 #
 prop <- as.data.frame(prop.table(table(mpi$tombamento)))
 #
-propTableMPI <- as.data.frame(table(mpi$tombamento))
+# Conta a quantidade de bens (contagem de tombamentos: quantas vezes aparece no data frame)
 #
+propTableMPI <- as.data.frame(table(mpi$tombamento))
+# 
+# sum(propTableMPI$Freq)
+# [1] 14282
+# 
 prop_teste <- left_join(prop, propTableMPI, by = "Var1")
 #
 prop_teste <- mutate(prop_teste, Freq.x = Freq.x*100)
@@ -1485,6 +1492,7 @@ prop_teste <- prop_teste %>% mutate(descricaoBem =
 # 
 # str_view(sala, '([[:digit:]]+)(\\s)')
 #
+# Imagem 062 - TOP 10 Bens Movimentados
 #
 prop_teste %>% ggplot(aes(x = Var1, y = Freq.y)) +
   geom_col(aes(fill = paste(descricaoBem, "(", Freq.y, ")"))) +
@@ -1497,4 +1505,68 @@ prop_teste %>% ggplot(aes(x = Var1, y = Freq.y)) +
                          format(sum(prop_teste$Freq.x), digits=2, nsmall=2), "% dos bens movimentados", sep = ""), 
        fill = "Descrição do Bem ")
 #
+#
+# Proporção de quantidade de bens por MPI:
 # 
+# A menor quantidade de bens movimentados por MPI é 01
+# A maior quantidade de bens movimentados por MPI é 419
+#
+# table(mpi$id) 
+# > Conta a quantidade de vezes que o ID de cada MPI aparece no data frame
+# > corresponde à quantidade de bens movimentados por cada MPI
+#
+mpi_teste <- as.data.frame(table(mpi$id))
+# [1] 4033 observações
+# 
+mpi_teste <- mpi_teste[order(mpi_teste$Freq),]
+#
+# sum(mpi_teste$Freq)
+# [1] 14282
+# 
+# tail(mpi_teste, 15)  # Var1 = ID da MPI
+# 
+#       Var1 Freq
+# 1928 48486  108
+# 3938 81660  114
+# 1896 47406  115
+# 3393 70580  115
+# 3566 72408  126
+# 316  15293  141
+# 3356 69689  159
+# 197  12740  168
+# 1556 37202  207
+# 3665 73887  419
+# 
+# 
+# Aplicando table() 2x
+# > Verifica a frequência em que a quantidade de bens movimentados aparece
+# > Exemplo: conta quantas vezes aparece MPIs com 1 (um) bem movimentado (MPIs que movimentaram 1 item)
+#            conta quantas vezes aparece MPIs com 2 (dois) bens movimentados (idem para 2 itens)
+#            etc.
+# 
+mpi_teste <- as.data.frame(table(table(mpi$id)))
+# 
+mpi_teste <- mpi_teste[order(mpi_teste$Var1, decreasing = TRUE),]
+# 
+# sum(mpi_teste$Freq)
+# [1] 4033
+#
+# qtdBens <- Quantidade de Bens Movimentados
+# qtdMPIs <- Quantidade de MPIs cadastradas que movimentaram a qtdBens
+# 
+names(mpi_teste)  <- c("qtdBens", "qtdMPIs")
+# 
+mpi_teste <- tail(mpi_teste, 39)
+mpi_teste <- head(mpi_teste, 39)
+# 
+mpi_teste %>% ggplot(aes(x = qtdBens, y = qtdMPIs)) +
+  theme(legend.position = "none") +
+  geom_col (aes(fill = paste(qtdBens, " (", qtdMPIs, ")", sep = ""))) +
+  geom_label(label = mpi_teste$qtdMPIs, nudge_x = 0.25, nudge_y = 0.25) +
+  labs(y = "Quantidade de MPIs Cadastradas", x = "Quantidade de Bens Movimentados por MPI", 
+       title = "Frequência da Quantidade de Bens Movimentados por MPI",
+       subtitle =  paste(gsub("(?!^)(?=(?:\\d{3})+$)", ".", 
+                              sum(mpi_teste$qtdMPIs, na.rm=TRUE), perl=T),
+                         " Movimentações Internas Cadastradas (Filtro)"), 
+       fill = "Quantidade de\nBens Movimentados")
+
