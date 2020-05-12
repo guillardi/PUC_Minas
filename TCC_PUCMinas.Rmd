@@ -1,49 +1,231 @@
 ---
-title: "PUC Minas TCC"
+title: "PUC Minas - TCC"
 author: "Marcio Guillardi da Silva"
-date: "Março de 2020"
-output: html_document
+date: "maio de 2020"
+output:
+#  pdf_document: default
+  html_document: default
 link: http://sillasgonzaga.com/material/curso_visualizacao/apresentacao-de-dados-com-relatorios.html
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidyr)
+library(lubridate)
+library(readr)
+library(gtools)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(ggridges)
+library(ggthemes)
+
 ```
 
-## R Markdown
+# 1. Introdução
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## 1.1.	Contextualização
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+  A habilidade e competência para tomar (boas) decisões dependem, quase sempre, do quanto estamos informados sobre determinado assunto. Esse poder para tomar decisões mais assertivas e obter sucesso nas decisões vem de informações concretas obtidas. O método estatístico sobre os dados disponíveis é um meio para obter tais informações e pode influenciar no poder de análise crítica da situação.
+  
+  Através da análise estatística, portanto, é possível fazer a interpretação e a análise desses dados para variados usos, dentre eles, definir as estratégias, aumentar a produtividade e dar um rumo mais inteligente e profissional às decisões.
+  
+  Nesse projeto utilizaremos dados das Movimentações Patrimoniais Internas (MPI’s) registradas no “Sistema de Gestão Cosmos” da Procuradoria Geral do Trabalho (PGT). As MPI’s são registradas pelos servidores do Setor de Patrimônio do Departamento de Logística, através dos atendimentos às ordens de serviços que são encaminhadas ao setor pelo Sistema Atena - Service Desk do MPT. 
+  
+  O objetivo deste projeto, ao analisar as MPI’s registradas, é apresentar observações aos gestores para, dentre outros objetivos, a tomada de decisões mais assertivas, melhorar os métodos e processos pertinentes identificando as áreas que precisam de monitoramento e para melhorar a qualidade dos atendimentos que são solicitados ao Departamento de Logística. 
 
-```{r cars}
-summary(cars)
+## 1.2. O problema proposto
+
+  O Departamento de Logística, através do Setor de Patrimônio, realiza atendimento do público interno no que se refere a guarda, distribuição e recolhimento de bens permanentes, registrando todas as movimentações dos bens no Sistema de Gestão Cosmos. Essas movimentações são realizadas a partir de solicitações ao setor registradas nas ordens de serviço (Sistema Atena). 
+  
+  As informações estatísticas atualmente disponíveis não atendem às demandas dos gestores quanto a obtenção de índices e parâmetros que demonstrem a produtividade do setor e de seus servidores no que diz respeito às movimentações patrimoniais registradas. Os gráficos disponíveis representam a contagem de Ordens de Serviços atendidas por cada servidor/colaborador: 
+
+  O Sistema Cosmos do MPT não emite gráficos estatísticos ou permite a sumarização para acompanhamento e análise das movimentações de bens. O gráfico do sistema de ordens de serviço não inclui os dados dessas movimentações patrimoniais. Logo, verificou-se que é necessário um tratamento sobre esses dados para se extrair alguns gráficos e métricas para os gestores do departamento.
+  
+  Após uma análise dos dados disponíveis (das movimentações patrimoniais interna de bens) extraídas do sistema, foi possível verificar que é possível fazer um acompanhamento adequado do setor desde que elaborada com as ferramentas certas e com os relatórios ou gráficos pertinentes. 
+Outras questões a serem respondidas apareceram à medida que os dados foram analisados e serão consideradas para estudos e análise em nosso projeto:
+
+  1) Quais os servidores que com maior número de atendimento no período em análise?
+  2) Quais foram as movimentações patrimoniais que movimentaram o maior número de bens?
+  3) Quais os setores (ou salas) que mais movimentaram (receberam ou devolveram) bens patrimoniais?
+  4) Quais os períodos que apresentaram o maior número de movimentações patrimoniais?
+  5) Quais os bens que sofreram o maior número de movimentações no período de análise dos dados?
+  
+  Para nosso projeto serão usados os dados do Sistema de Gestão Cosmos referente ao período compreendido entre outubro de 2017 e fevereiro de 2020 (inclusive), com o objetivo de produzir gráficos a serem apresentados à atual gestão do Departamento de Logística. Os dados serão tratados com o uso da Linguagem de Programação R na IDE RStudio; serão gerados gráficos a partir dos dados obtidos e, na finalização do tratamento dos dados, um “dataset” será exportado para uso nos aplicativos de BI: Power BI®, Qlik® e Tableau® . 
+  
+  O Power BI® é um conjunto de ferramentas de “Business Intelligence” para análise de dados e compartilhamento ideias. Com ele é possível, através de dados de diferentes fontes, consolidar todas as informações em uma única “dashboard”.
+  
+  **Em tempo**: RStudio é um software livre de ambiente de desenvolvimento integrado para R, que é uma linguagem de programação para gráficos e cálculos estatísticos, também livre para a comunidade.
+ 
+# 2.	Coleta de Dados
+
+## 2.1.	Origem e Descrição dos Arquivos
+
+  Os dados foram adquiridos através da exportação das Movimentações Patrimoniais Internas (MPI’s) registradas pelo atendimento do Setor de Patrimônio do MPT. Os dados referem-se a todas as movimentações patrimoniais realizadas durante o período em análise. 
+  
+  A seguir estão descritos os formatos e estruturas das “tabelas” e o seu relacionamento, destacados as chaves primárias (PK) e estrangeiras (FK) que indicam o relacionamento do conjunto de dados:
+
+1.	Nome do Arquivo: mpi
+Nome da coluna/campo	Descrição	Tipo
+Id
+(PK)	Identificação Sequencial e única da MPI.	Inteiro
+data	Data de registro da MPI.	Caractere
+interna	Indica se a MPI se refere a uma movimentação interna ou externa/temporária.	Caractere
+retorno	Indica se a MPI se refere a ao retorno de uma movimentação externa.	Caractere
+cedente	Cedente do bem patrimonial movimentado. 	Caractere
+responsavel	Novo responsável pelo bem patrimonial movimentado	Caractere
+nivelSuperior	Nível ao qual está ligado o local (andar, departamento, setor ou mesmo outro local).	Caractere
+local	Local em que o bem será destinado/movimentado	Caractere
+tombamento
+(FK para a tabela de bens)	Número patrimonial único e sequencial dos bens.	Inteiro
+inventario 	Número do inventário no qual o bem foi identificado. Caso presente indica que o bem foi movimentado automaticamente.	Inteiro
+responsavelCadastro	Identificação nominal do servidor público que cadastrou a MPI.	Caractere
+dataConfirmacaoRecebimento	Data em que o “Responsável” (destino da MPI) deu ciência da movimentação.	Caractere
+Tabela 1 - 41.311 observações com 12 variáveis
+
+2.	Nome do Arquivo: bensPatrimoniais
+Nome da coluna/campo	Descrição	Tipo
+tombamento
+(PK / FK do arquivo de MPI)	Identificação Sequencial e única do bem patrimonial.	Caractere
+descricao	Descrição do bem patrimonial	Caractere
+dataBaixa	Data da baixa (exclusão)	Caractere
+vidaUtil	Dias úteis de vida antes do final da garantia 	Inteiro
+valorBruto	Valor de aquisição do bem	Caractere
+depreciação 	Valor da depreciação acumulada do bem durante sua vida útil	Caractere
+valorLiquido	Diferença entre o valor de aquisição e o valor da depreciação acumulada	Caractere
+Tabela 2 - 37.325 obsevações com 07 variáveis.
+
+ 
+# 3. Processamento/Tratamento de Dados
+
+  Inicialmente esperava-se usar todos os dados obtidos para a elaboração dos gráficos estatísticos e do “dataset” que será exportado para processamento e análise. No entanto, após uma análise inicial dos dados, verificou-se que muitos registros não indicavam uma movimentação patrimonial realizada pelos servidores do Setor de Patrimônio em atendimento às ordens de serviços registradas. Ou essas eram movimentações automáticas, ou eram movimentações eventuais cadastradas pelos gestores para distribuição de bens incorporados de compras recentes e de ajustes de localidade de bens (mesmo responsável mudando de sala ou andar). Esses registros serão desconsiderados do conjunto de dados para que os gráficos sejam construídos a partir das movimentações patrimoniais registradas pelos servidores do setor (distribuição e recolhimento de bens permanentes).
+
+## 3.1. Importando os dados 
+
+  Nos procedimentos iniciais os dados foram importados para o ambiente R (RStudio) e algumas transformações para manipulação e utilização na geração dos primeiros gráficos. Os nomes dos servidores foram camuflados a partir da transformação dos seus nomes para suas iniciais apenas.
+
+```{r message=FALSE, warning=FALSE}
+# Leitura/Carregamento e início das transformações dos dados
+# 
+# mpi = dataset das Movimentações Patrimoniais Internas
+#
+mpi <- read.csv(".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", sep = ";", encoding = "UTF-8", 
+                stringsAsFactors = FALSE)
+#
+# 41.311 Registros lidos
+#
+# Substituindo/camuflando os dados dos servidores por suas iniciais
+#
+mpi <- mpi %>% 
+  mutate(responsavel = if_else(responsavel != "Marcio Guillardi da Silva", 
+                               str_replace_all(gsub("([[:upper:]]?)([[:lower:]])", "\\1", responsavel), 
+                                               " ", ""), 
+                               responsavel), cedente = if_else(cedente != "Marcio Guillardi da Silva",
+                                                               str_replace_all(
+                                                                 gsub("([[:upper:]]?)([[:lower:]])",
+                                                                      "\\1", cedente),
+                                                                 " ", ""), 
+                                                               cedente), responsavelCadastro = 
+           if_else(responsavelCadastro != "Marcio Guillardi da Silva", 
+                   str_replace_all(gsub("([[:upper:]]?)([[:lower:]])",
+                                        "\\1", responsavelCadastro),
+                                   " ", ""), 
+                   responsavelCadastro))
+#
+# Gravando/sobrepondo o arquivo original com os dados dos servidores camuflados
+#
+write_excel_csv2(mpi, ".\\data-raw\\movimentacoesPatrimoniaisInternas.csv", na = "NA", append = FALSE, 
+                 delim = ";", quote_escape = "double")
+#
+# Alterando os títulos/nomes das colunas do dataset
+#
+colnames(mpi) <- c("id", "dataMovimentacao", "interna", "retorno", "cedente", "responsavel", "nivelSuperior",
+                   "sala", "tombamento", "inventario", "responsavelCadastro", "dataConfirmacaoRecebimento")
+# 
+# Alterando a ordem das colunas & Agrupando por Responsável, Cedente e id
+# 
+mpi <- mpi %>% select(id, responsavel, cedente, sala, nivelSuperior, tombamento, everything()) %>% 
+  arrange(responsavel, cedente, id)
+#
+# Transformando algumas colunas (tipos de dados)
+# 
+mpi = mpi %>% mutate(dataMovimentacao = dmy(dataMovimentacao))
+#
+mpi = mpi %>% mutate(dataConfirmacaoRecebimento = dmy_hm(dataConfirmacaoRecebimento))
+#
+mpi <- mutate_at(mpi, vars("tombamento","id","inventario"), as.character)
+#
 ```
 
-## Including Plots
+Em seguida as descrições dos bens foram importadas para o ambiente RStudio a partir do conjunto de dados dos bens patrimoniais (tabela: “bensPatrimoniais”). Essa informação foi inserida no arquivo de movimentações patrimoniais internas (MPI) através de um comando do R. 
+Inicialmente foram realizados testes através da função “left_join()” do R. No entanto essa função inseriu no conjunto de dados das movimentações além da descrição correspondente todos os campos existentes na tabela de bens patrimoniais. Para este projeto será necessário apenas a descrição do bem, e a partir da descrição serão gerados alguns filtros e gráficos. Dessa forma optou-se por utilizar o código abaixo para obter apenas a descrição do bem, e incluir esse dado no arquivo de movimentações patrimoniais internas:
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r message=FALSE, warning=FALSE}
+#
+# código R – Inserindo a descrição dos bens patrimoniais no arquivo de mpi}
+#
+# Leitura do arquivo geral de bens patrimoniais para recuperar a descrição
+# 
+bensPatrimoniais <- read.csv(".\\data-raw\\BensPorGrupo.csv", sep = ";", encoding = "UTF-8", stringsAsFactors = FALSE)
+#
+# Compatibilizando os campos das duas tabelas
+#
+bensPatrimoniais <- mutate_at(bensPatrimoniais, vars("tombamento"), as.integer)
+#
+# Inserindo a descrição do bem patrimonial a partir do arquivo geral de
+# bens. Este comando criará uma coluna no arquivo de movimentações 
+# internas, um campo identicado por “descricaoBem”. 
+#
+mpi <- mpi%>% mutate(descricaoBem = bensPatrimoniais$descricao[match(tombamento, bensPatrimoniais$tombamento)])
+#
 ```
+
+3.2. Primeiros Gráficos sobre os Dados Brutos
+
+Realizaremos uma sumarização dos dados, agrupado por responsável e ano, com o total das movimentações de bens acumulado por ano. Em seguida apresentaremos alguns gráficos para uma primeira análise.
+
+```{r}
+# 
+# {código R – Criando um “dataframe” sumarizado por Cedente e Ano}
+#
+# mpiSumResponsavel
+# 
+mpiSumResponsavel <- mpi %>% group_by(responsavel, ano =
+as.factor(year(dataMovimentacao))) %>%
+tally(name = "bensMovimentados")
+# 
+# 684 Observações
+# 
+```
+
+Dataframe gerado: mpiSumResponsavel.
+
+3.	Dataframe: mpiSumResponsavel
+Nome da coluna/campo	Descrição	Tipo
+responsavel	Novo responsável pelo bem patrimonial movimentado	Caractere
+ano	Ano do cadastro da MPI	Fator (com 4 Níveis)
+bensMovimentados	Total acumulado no ano das MPI de bens permanentes	Inteiro
+Tabela 3 - 684 obsevações com 3 variáveis.
+
+O primeiro gráfico nos dará uma ideia da distribuição dos dados. É um gráfico de pontos (geom_point), também conhecidos como gráfico de dispersão. 
+Para “limpar” um pouco o visual, o conjunto de dados foi filtrado pelas movimentações com mais de 300 bens no período. Com isso pode-se verificar quais são os destinatários dos bens (responsáveis) que mais receberam bens permanentes em sua responsabilidade.
+
+```{r pressure, echo=FALSE, fig.width=14, fig.height=7}
+# 
+# Gerando o primeiro gráfico – geom_point()
+#
+# Responsáveis com mais de 300 bens movimentados para sua carga
+#   
+mpiSumResponsavel %>% filter(bensMovimentados > 300) %>% ggplot(aes(x = bensMovimentados, y = responsavel, group = responsavel, colour = responsavel)) + 
+  geom_point(aes(shape = ano, size = ano)) +
+  labs(y = "Responsável (Destino das Movimentações)", x = "Quantidade de Bens Movimentados", title = "Responsável x Quantidade de Bens Movimentados", subtitle = paste("(* Responsáveis com mais de 300 Bens Movimentados - ", gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpiSumResponsavel[mpiSumResponsavel$bensMovimentados > 300,]$bensMovimentados, na.rm = TRUE), perl=T), " Bens Movimentados)"), color = "Responsáveis", shape = "Ano", size = "Ano") +
+  theme(axis.text.x = element_text(size = 10), plot.title = element_text(hjust = 0.5), panel.grid.major = element_line(colour = "grey50"))
+#
+```
+
 
 Publicações:
 https://rpubs.com/guillardi/tccpucminas
-
-
-
-include = FALSE 
-prevents code and results from appearing in the finished file. R Markdown still runs the code in the chunk, and the results can be used by other chunks.
-
-echo = FALSE 
-prevents code, but not the results from appearing in the finished file. This is a useful way to embed figures.
-
-message = FALSE 
-prevents messages that are generated by code from appearing in the finished file.
-
-warning = FALSE 
-prevents warnings that are generated by code from appearing in the finished.
-
-fig.cap = "..." 
-adds a caption to graphical results.
