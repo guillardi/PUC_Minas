@@ -18,7 +18,7 @@ library(ggplot2)
 library(stringr)
 library(ggridges)
 library(ggthemes)
-#
+# 
 # Define a pasta/diretório de trabalho
 #
 # setwd("C:/Users/Marcio/Dropbox (Pessoal)/TCC_PUCMinas/PUC_Minas")

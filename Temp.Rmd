@@ -1,0 +1,1388 @@
+	Analisando o gráfico verificou-se: que a quantidade de bens movimentados está fora do padrão (mais dispersos) em relação a outros bens movimentados; que alguns gestores não poderiam estar recebendo sob sua responsabilidade a quantidade de bens que foram movimentados. O que pode estar acontecendo?
+O problema foi apresentado aos gestores do Setor de Patrimônio e constatado que muitas dessas movimentações devem ser descartadas pois são movimentações automáticas ou registradas pelos gestores durante a incorporação de bens adquiridos. Movimentações cadastradas pelos gestores são movimentações de bens que foram incorporados ao patrimônio da instituição. Movimentações automáticas são aquelas registradas pelo sistema durante os levantamentos patrimoniais (inventários anuais).  
+Mais adiante faremos a limpeza desses dados a partir dos parâmetros informados pela administração para realizar tal procedimento.
+	Construiremos mais alguns gráficos para visualização desse mesmo “dataset”. Observe que continuaremos filtrando pela quantidade de bens movimentados. Próximo gráfico: barras (geom_bar / ggplot).
+
+
+
+{código R – Gráfico de Barras – geom_bar() }
+# 
+# Responsáveis com mais de 300 bens movimentados para sua carga
+#
+mpiSumResponsavel %>% 
+filter(bensMovimentados > 300) %>%
+ggplot(aes(x = responsavel, 
+             y = bensMovimentados, 
+             fill = responsavel, 
+             label = ano)) +
+  	geom_bar(stat = "Identity") +
+  	labs(y = paste("Qtde de Bens Movimentados - Mais de ", 
+nFiltro, " Bens"),
+       	x = "Responsável (Destino das Movimentações)",
+       	fill = "Responsáveis") +
+  	ggtitle(paste("Movimentações por Responsável", " - Ano(s): ", 
+          toString(levels(mpiSumResponsavel$ano)), "(", 
+          gsub("(?!^)(?=(?:\\d{3})+$)", ".", 
+          	sum(mpiSumResponsavel[mpiSumResponsavel$bensMovimentados > 
+nFiltro,]$bensMovimentados, na.rm = TRUE), perl=T),
+" Bens Movimentados)")) + 
+  	theme(axis.text.x = element_text(angle = 90, size = 9), 
+plot.title = element_text(hjust = 0.5), 
+        	panel.grid.major = element_line(colour = "grey50")) +
+  	geom_text(check_overlap = TRUE)
+
+
+	Através de uma rápida verificação pode-se identificar quais são os gestores que mais receberam movimentações de bens. 
+Qual a primeira conclusão? Vamos usar o R como calculadora para nos ajudar com isso:
+{código R – Calculadora em R}
+# 
+# Qual é a representatividade de movimentações dos 16 maiores 
+# “recebedores” de bens em relação ao total de bens movimentados?
+#
+sum(mpiSumResponsavel$bensMovimentados)
+#
+# [1] 41311
+# 
+# Contando os responsáveis que receberam mais de 300 bens
+#
+sum(mpiSumResponsavel[mpiSumResponsavel$bensMovimentados > 
+300,]$bensMovimentados, na.rm = TRUE)
+#
+# [1] 25218
+# 
+paste(round(100*25218/41311, 2), "%", sep = "")
+# 
+# [1] "61.04%"
+#
+
+	Observe que os 16 maiores recebedores de bens representam mais de 60% do total de movimentações cadastradas. Lembre-se: as movimentações de incorporação e as automáticas foram consideradas.
+Nota: Uma das definições na análise de dados refere-se aos dados que apresentam um grande afastamento dos demais dados. Esses valores que fogem da normalidade (mais dispersos) são considerados “outliers”. Em nosso projeto esses dados não serão considerados para elaboração dos gráficos, pois podem causar anomalia nos resultados.
+O próximo gráfico representa os 5 gestores com maior quantidade de movimentações de bens para sua responsabilidade. Segue o gráfico para análise: 
+
+Quantos bens foram movimentados para o responsável “LCCS”? Quanto representa as movimentações dele em relação ao total do período?
+
+
+Em seguida filtraremos os dados das movimentações internas e criaremos um “data frame” para responder essas questões.
+{código R – Filtrando os dados de um responsável específico: “LCCS”}
+#
+mpi_Filtro <- mpi %>% filter(responsavel == "LCCS") %>%
+group_by(responsavel, ano = as.factor(year(dataMovimentacao)),
+mes = month(dataMovimentacao, 
+label = TRUE,  abbr = TRUE)) %>%
+tally(name = "movimentacoes")
+#
+# 29 Observações – Quantidade de movimentações por ano/mês (LCCS)
+
+“Dataframe” gerado a partir do código acima:
+
+4.	Data frame: mpi_Filtro
+
+Nome da coluna/campo	Descrição	Tipo
+responsavel	Novo responsável pelo bem patrimonial movimentado	Caractere
+ano	Ano do cadastro da MPI	Fator (com 4 Níveis) 
+mes	Descrição do mês (jan, fev etc.)	Fator (com 12 níveis)
+movimentacoes	Somatório dos bens movimentados (por mês)	Lista
+Tabela 4 - 29 obsevações com 04 variáveis
+
+
+{código R – Gráfico de barras – Responsável: LCCS}
+#
+# Gráfico de colunas sobrepostas - stack
+#
+mpi_Filtro %>%
+ggplot(aes(x = mes, 
+y = movimentacoes, 
+fill = ano, 
+label = movimentacoes, vjust = "inward")) +
+geom_bar(stat = "Identity", position = "stack") +
+labs(y = "Qtde de Movimentações", 
+x = "Período (Meses)",
+fill = "Anos") +
+ggtitle(paste("Movimentações por Mês", " - Ano(s): ", 
+toString(levels(mpi_Filtro$ano)),
+"(", gsub("(?!^)(?=(?:\\d{3})+$)", ".", sum(mpi_Filtro$movimentacoes), perl = T),
+" Movimentações)")) + 
+theme(axis.text.x = element_text(angle = 90, size = 10), 
+        	plot.title = element_text(hjust = 0.5), 
+        	panel.grid.major = element_line(colour = "grey50")) +
+  	geom_text(check_overlap = TRUE, 
+vjust = 0, position = position_stack(vjust = 0.5))
+
+
+No gráfico abaixo está representado o responsável (LCCS) com o maior número de movimentações de bens patrimoniais durante o ano de 2019. Foi realizado um filtro usando a estrutura do “data frame” do último gráfico:
+{código R – Filtro para o gestor “LCCS” e para o ano 2019}
+#
+mpi_Filtro <- mpi %>% filter(year(dataMovimentacao) == 2019 & 
+responsavel == "LCCS") %>% (...)
+#
+# 12 Observações – Movimentações no ano de 2019 por mês (LCCS)
+#
+
+ 
+3.3. Limpando e Transformando os Dados
+
+As transformações dos dados é o processo de análise e identificação dos dados incompletos ou incorretos. Efetuaremos a adequação deles aos objetivos do projeto sem, entretanto, perder o seu significado. É um processo interativo e iterativo, pois após uma determinada transformação outra poderá ser necessária para atingir a padronização dos formatos de saída definidos.
+Uma das primeiras providências será verificar quais as movimentações patrimoniais que devem ser descartadas. Quais são elas? São as movimentações automáticas ou registradas pelos gestores. Relembrando o que foi dito: as movimentações cadastradas pelos gestores são movimentações de bens que foram incorporados ao patrimônio da instituição ou referente às mudanças físicas de um mesmo gestor (mudança de sala); e as movimentações automáticas registradas pelo sistema durante os levantamentos patrimoniais (inventários anuais).  
+3.3.1. Limpando os dados
+a) Movimentações patrimoniais automáticas 
+
+Durante os levantamentos patrimoniais anuais são encontrados (e registrados) bens fora de suas salas (UL – Unidade Local). Esses bens retornam para sua origem ou são transferidos para onde foram encontrados de forma automática no fechamento do inventário. Se o bem permanece onde foi encontrado ou é devolvido para a sua UL de origem depende de uma série de regras e fatores definidos durante a fase de programação e preparação do inventário. 
+O nome gestor responsável pelo fechamento do inventário fica registrado no campo “responsavelCadastro” na tabela de movimentações patrimoniais internas. E no campo “inventario” fica registrado o número do inventário, indicando que foi uma movimentação automática.
+
+{código R – Excluindo as movimentações automáticas dos inventários}
+# 
+mpi <- mpi %>% filter(is.na(inventario))
+# 
+# 30.961 Registros
+# 10.350 Registros excluídos
+#
+
+
+
+b) Movimentações patrimoniais de mudanças físicas de UL
+
+Nas movimentações patrimoniais registradas em que o campo “cedente” corresponde ao campo “responsável” é um indicativo de que houve uma movimentação de ajuste de localidade cadastrada por algum gestor. 
+No ano 2019 foram realizadas uma grande quantidade de movimentações para adequação do ambiente quando foram desocupados 03 (três) andares para receber uma Subprocuradoria do MPT (PRT 10 – Brasília DF). 
+Neste caso as movimentações de 2019 referente a essa mudança (junho e julho) não serão computadas para fins estatísticos, pois os bens permanentes permaneceram sob a responsabilidade do mesmo gestor.  
+{código R – Excluindo as movimentações de ajuste de localidade}
+# 
+mpi <- mpi %>% filter(!(responsavel == cedente & 
+year(dataMovimentacao) == 2019))
+month(dataMovimentcao) == 6
+#
+# 29.820 Registros
+#  1.141 Registros excluídos
+c) Movimentações patrimoniais cadastradas pelos gestores
+
+Durante os trabalhos de levantamentos patrimoniais (inventários anuais), compras e aquisições (incorporações) e quando da realização de operações de “desfazimento” (de bens para doação) ou mudanças internas, os gestores do setor de patrimônio registram movimentações patrimoniais temporárias para o tratamento adequado, dependendo da situação. Essas movimentações também não serão consideradas para nosso projeto.
+
+{código R – Bens não loalizados durante inventários ou mudanças físicas de grande escala}
+#
+mpi <- mpi %>% filter(!grepl("BENS NÃO LOCALIZADOS", sala, fixed = TRUE))
+#
+# 26.311 Registros
+#  3.509 Registros excluídos
+# 
+#
+# O campo "nivelSuperior" indica uma UL temporária: "DESFAZIMENTO"
+# 
+mpi <- mpi %>% filter(!grepl("DESFAZIMENTO", nivelSuperior, fixed = TRUE))
+mpi <- mpi %>% filter(!grepl("DESFAZIMENTO", sala, fixed = TRUE))
+# 
+# 22.017 Registros
+#  4.294 Registros excluídos
+# 
+# 
+# O campo "sala" indica "UL VIRTUAL" e "UL GERAL" – movimentação de grande
+# quantidade de bens para doação ou incorporação e distribuição
+# 
+mpi <- mpi %>% filter(!grepl("UL VIRTUAL", sala, fixed = TRUE) &
+                        !grepl("UL GERAL", sala, fixed = TRUE))
+#
+# 19.776 Registros
+#  2.241 Registros excluídos
+#
+
+Quando da aquisição de bens permanentes pela instituição o Setor de Patrimônio é responsável pela sua incorporação, guarda e distribuição. São gerados números sequenciais com suas respectivas plaquetas (ou etiquetas adesivas, no caso de livros) e aplicado nos bens. 
+O processo de incorporação e emplaquetamento pode ser realizado fora das dependências do setor e, se for o caso, os bens são transferidos temporariamente para outro setor para que a conferência e aplicação das plaquetas sejam realizadas. Essas movimentações temporárias serão filtradas e excluídas.  
+
+{código R – Emplaquetamento de notebooks adquiridos – Fora da sequência}
+# 
+mpi <- filter(mpi, !(tombamento >= 37827 &
+tombamento <= 38623 &
+(responsavel == "DHM" |
+responsavel == "LCCS" |
+responsavel == "Marcio Guillardi da Silva")))
+# 
+# 18.023 Registros
+#  1.753 Registros ignorados
+#
+
+{código R – Aquisição e distribuição de painéis divisórios (baias)}
+#
+mpi <- filter(mpi, !(tombamento >= 36843 &
+tombamento <= 37817 &
+cedente == "LCCS"))
+#
+# 17.047 Registros
+#    976 Registros ignorados
+#
+
+{código R – Aquisição de livros para a Biblioteca}
+# 
+# Selecionando aquelas MPI’s que movimentaram mais de 15 itens 
+#
+# id      Itens Movimentados (total)
+# 68819   310
+# 48530   140
+# 49798   127
+# 34510   101
+# 30358    58
+# 28094    57
+# 11746    50
+# 11747    45
+# 37830    30
+# 37728    24
+# 34506    22
+# 66138    22
+# 36396    16
+# 38790     1
+# 70247     1
+# 
+mpi_count <- mpi %>% filter(responsavel == "VCAF" &
+grepl("BIBLIOTECA LIVROS", sala,
+fixed = TRUE) &
+(cedente == "LCCS" | 
+cedente == "RVGB" | 
+cedente == "ARSD")) %>%
+count(id, name = "total", sort = TRUE) %>%
+filter(total > 15)
+# 
+mpi <- mpi %>% filter(!(id %in% mpi_count$id))
+# 
+# 16.045 Registros
+#  1.002 Registros ignorados
+#
+
+Filtrando as movimentações que tenham mais de 5 itens movimentados em seguida verificando quais as movimentais possuem números patrimoniais distribuídos em sequência. Isso implica em dizer que os patrimônios foram transferidos (movimentados) após sua incorporação (tombamento) quando transferidos da carga dos gestores do setor de patrimônio.
+
+{código R – Aquisição de bens diversos}
+# 
+mpi_total <- mpi %>% filter(cedente == "LCCS" | 
+cedente == "RVGB" | 
+cedente == "ARSD") %>%
+count(id, name = "total", sort = TRUE) %>%
+filter(total > 5) 
+#
+# Criando um dataframe em branco (mesma estrutura MPI)
+#
+mpi_blank = data.frame(mpi[0,])
+# 
+for (mpiId in mpi_total$id) {
+  # 
+  mpi_pass <- mpi %>% 
+filter(mpi$id == mpiId) %>% 
+select(id, tombamento) %>% 
+arrange(tombamento)
+  # 
+  mpi_pass <- mutate_at(mpi_pass, vars("tombamento"), as.integer)
+  # 
+  # SE a contagem de registros de um mesmo ID (de uma MPI) for igual
+  # a soma das differenças entre os números patrimoniais (1), significará
+  # que os números patrimoniais estarão em sequência 
+  # 
+  if (count(mpi_pass) == sum(diff(mpi_pass[[2]]))+1) {
+    #
+    # Cria um dataframe para conferência/visualização
+    #
+    mpi_blank <- rbind(mpi_blank, filter(mpi, id == mpiId))
+    # 
+    # Os tombamentos (números patrimoniais) estão em sequência
+    # e serão ignorados
+    # 
+    mpi <- mpi %>% filter(!id == mpiId)
+  }
+}
+#
+# 15.200 Registros
+#    845 Registros excluídos
+#
+
+
+
+
+{código R – Movimentações pontuais de bens diversos}
+#
+# Bens para tombamento e distribuição que não estão em sequência
+# de números patrimoniais
+#
+mpi <- mpi %>% filter(!(id %in% c(18255, 45637, 50062, 50407, 50901, 
+51164, 56374, 70585, 72744, 72982)))
+#
+# id=="18255" # 120 Registros * PISTOLAS AUTOMÁTICAS
+# id=="45637" # 120 Registros * CADEIRAS RODÍZIO
+# id=="50062" # 032 Registros * TRANSFERÊNCIA DE BEM. MESMO RESPONSÁVEL
+# id=="50407" # 098 Registros * TRANSFERÊNCIA DE BEM. MESMO RESPONSÁVEL
+# id=="50901" # 102 Registros * TRANSFERÊNCIA DE BEM. MESMO RESPONSÁVEL
+# id=="51164" # 188 Registros * INVENTÁRIO ASCOM – SALA 1702
+# id=="51166" # 086 Registros * INVENTÁRIO ASCOM – SALA 1703
+# id=="56374" # 300 Registros * Fornecimento de WEBCAM LOGITECH
+# id=="70585" # 207 Registros * MUDANÇA TEMPORÁRIA DE CHEFIA – SL 1702
+# id=="72744" # 098 Registros * TRANSFERÊNCIA DE BEM. MESMO RESPONSÁVEL
+# id=="72982" # 232 Registros * Recolhimento de WEBCAM LOGITECH
+# 
+# 14.282 Registros
+#    918 Registros ignorados
+#
+3.3.2. Transformando os Dados
+
+Finalizado a limpeza dos dados, iniciaremos a sua transformação, padronização e normalização. É comum ouvir que a limpeza dos dados tradicionalmente consome mais de 80% de todos os recursos dos projetos de análise de dados. O desafio é garantir que os dados estejam íntegros para análise e a geração dos gráficos estatísticos que este projeto se propõe. Somente os dados corretos são capazes de nos dar respostas assertivas. 
+Abaixo está representado um gráfico de “nuvem de palavras”. Ela foi criada a partir da descrição dos bens, extraído após a última etapa do processo de limpeza. Através dele podemos ver aqueles bens que mais sofreram movimentações durante o período. Essa é o objetivo deste gráfico, as palavras em destaque indicam que elas apareceram mais vezes na contagem de palavras no arquivo gerado.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{Código R - Gravando o arquivo com a descrição dos bens para elaborar uma Nuvem de Palavras
+# 
+write.table(mpi$descricaoBem, file = "./data/ml.txt", sep = "\t",
+row.names = FALSE, col.names = FALSE)
+#
+# O código R que gerou este gráfico está gravado em “./script/Rstudio_wordClouds.R”
+
+Após a limpeza, podemos iniciar a etapa de transformação e padronização dos dados. Nessa fase serão corrigidos, padronizados e tratados os desvios e inconsistências, transformando os dados de acordo com as regras do negócio. Faremos transformações relacionadas ao tamanho e tipo, substituição de caracteres estranhos, correção de erros de digitação, comparações para evitar duplicidade de informações, como por exemplo o mesmo nome escrito de formas diferentes dentre outras. 
+Iniciando o processo começaremos atualizando o campo “sala” do nosso “data frame”. Essa primeira atualização prepara os dados para as transformações seguintes. Este campo passará por várias alterações durante todo o processo.
+
+As “salas” no sistema são classificadas de acordo com uma hierarquia. Quando do cadastro da movimentação patrimonial o servidor responsável indica para qual sala o bem será movimentado, escolhendo o local adequado a partir do que foi solicitado na ordem de serviço. 
+O gestor do Setor de Patrimônio é responsável pelo cadastramento dessas salas (UL´s) dentro da devida hierarquia para que seja utilizado no sistema. O sistema grava essas informações (a descrição da sala) no registro da movimentação patrimonial. Ao longo do tempo as descrições das salas bem como de seus níveis superiores na hierarquia podem sofrer alterações, por isso ao invés de gravar o ID da sala é gravado um conjunto de textos extraído de toda a hierarquia.
+
+
+
+
+
+Abaixo estão algumas das descrições de salas e seus respectivos níveis superiores. Tanto nas descrições do campo “sala” quanto do campo “nivelSupeior” podemos observar que os dados não estão normalizados/padronizados. Começaremos a padronização das informações destacadas na tabela:
+
+Nome da Sala (sala)	Descrição Nível Superior (nivelSuperior)
+ED. CNC, 05º ANDAR, SALA Nº 501D, SETOR DE SUPORTE ELETRÔNICO CSU/DTI	ED. CNC, 05º ANDAR
+SL. Nº 1506A, SERVIÇO DE INTELIGENCIA – GSI	CNC, 15ºAND.
+
+ED. CNC, 05º ANDAR, SALA Nº 501B, LABORATÓRIO CSU/DTI	ED. CNC, 05º ANDAR
+
+PROTOCOLO GERAL	SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO
+SEÇÃO DE ARQUIVO	SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO
+SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL	CNC, 4º SUBSOLO
+SL. 403SS, ARQUIVO CDI	CNC, 4º SUBSOLO
+
+SL. 401SS, DEPOSITO SEÇÃO DE PATRIMONIO	DEPÓSITOS DO SETOR DE PATRIMÔNIO
+SL. 402SS, SEÇÃO DE PATRIMONIO – DA	CNC, 4º SUBSOLO
+SL. 402SS, DEPOSITO SEÇÃO DE PATRIMONIO	DEPÓSITOS DO SETOR DE PATRIMÔNIO
+
+Tabela 5 - Salas e seus Níveis Superiores na Hierarquia
+
+	Quando foram referenciadas como destino das movimentações as salas “PROTOCOLO GERAL” e “SEÇÂO DE ARQUIVO” ficaram registradas dentro da hierarquia, mas fora do padrão das outras salas. Para padronizar vamos alterar essas informações. Observe na tabela abaixo como elas estão representadas:
+
+{Código R – Padronizando o campo “sala” – PROTOCOLO GERAL ou SEÇÃO DE ARQUIVO}
+# 
+# mpi_teste <- mpi %>% filter(sala == "PROTOCOLO GERAL" |
+#						sala == "SEÇÃO DE ARQUIVO")
+# 
+# 186 Ocorrências
+# 
+# ‘SE’ sala = "PROTOCOLO GERAL" 'OU' sala = "SEÇÃO DE ARQUIVO" &
+#      nivelSuperior = "SL. 803, DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO"
+#
+# LOGO Sala = “nivelSuperior” + “sala” &
+# 	 nivelSuperior = “CNC, 08º ANDAR” 
+#  
+mpi <- mpi %>% mutate(sala = if_else(sala == "PROTOCOLO GERAL" | 
+sala == "SEÇÃO DE ARQUIVO",
+paste(nivelSuperior, sala, sep = ", "),
+str_trim(sala)),
+nivelSuperior = if_else(nivelSuperior == "SL. 803,
+ DEP. DOCUMENTAÇÃO E GESTÃO DA INFORMAÇÃO", 
+"CNC, 08º ANDAR",
+str_trim(nivelSuperior)))
+
+Resultado da transformação pelo código R acima:
+
+
+Faremos o mesmo procedimento para a sala “SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL”:
+{Código R – Padronizando o campo “sala” – SEÇÃO DE ARQUVIO E MEMORIA (...)}
+#
+# mpi_teste <- mpi %>% filter(sala == "SEÇÃO DE ARQUIVO E MEMORIA 
+# INSTITUCIONAL")
+# 
+# 116 Ocorrências
+# 
+# sala          = "SEÇÃO DE ARQUIVO E MEMORIA INSTITUCIONAL"
+# nivelSuperior = "CNC, 4º SUBSOLO"
+# 
+# sala <- "SL. 403SS, SEÇÃO ARQUIVO CDI"
+# 
+mpi <- mpi %>% mutate(sala = if_else(sala == "SEÇÃO DE ARQUIVO E MEMORIA
+INSTITUCIONAL",
+"SL. 403SS, SEÇÃO ARQUIVO CDI",
+sala))
+#
+
+A padronização do campo “sala” faz-se necessário pois serão produzidos gráficos que, em sua atual nomenclatura, não permitirão realizar uma exploração nos seus diferentes níveis (drill-down). Relatórios e gráficos que permitem esta exploração auxiliam na apresentação dos resultados com mais detalhes. 
+No próximo gráfico está representado com a atual nomenclatura das salas, com todos os níveis em apenas um conjunto de caracteres (campo “sala”):
+
+
+
+
+
+
+Para apresentarmos os dados adequadamente e podermos realizar o “drill-down”, faremos a transformação do campo “sala” que passará a formar três níveis hierárquicos dentro do “data frame”. Observe o exemplo da movimentação patrimonial cujo “id” é 14320 nos comentários do código abaixo:
+
+{Código R – Criando niveis de hierarquia a partir do campo “sala”}
+#
+# Descrição: "ED. CNC, 15º ANDAR, SALA Nº 1507A, COORDENADOR DA ASSESSORIA 
+#			DE PLANEJAMENTO E GESTÃO"
+#
+# Após execução da operação: sala   <- "ED. CNC"
+#                            nível1 <- "15º ANDAR"; 
+#                            nível2 <- "SALA Nº 1507A" 
+#                            nivel3 <- "COORDENADOR DA ASSESSORIA DE 
+#							PLANEJAMENTO E GESTÃO"
+mpi <- mpi %>% separate(sala, 
+c("sala", "nivel1","nivel2", "nivel3"), 
+sep = "(\\,)[\\s]*")
+#
+# str(mpi)
+# $ sala: Factor w/ 368 levels
+#
+
+	
+
+
+
+
+Resultado no “dataframe”:
+
+Analisando o “data frame”, após o resultado da última operação, conclui-se que o campo “sala” precisa ser padronizado juntamente com os outros campos. Na imagem acima é possível verificar tal afirmativa. Para começar vamos realizar as seguintes operações para quando o compo “sala” for igual a “ED. CNC”: 
+•	Substituir o conteúdo do campo “nivel1” pelo conteúdo do campo “nivel3”
+•	Substituir o conteúdo do campo “sala” pelo conteúdo do campo “nivel2”, substituindo o conjunto de caracters “SALA Nº” por “SL. Nº”
+
+{Código R – Atualizando valores - campo “nivel1”}
+# 
+# 'SE' sala == "ED. CNC" ‘LOGO’ (nivel1 <- nivel3)
+# 
+# Exemplo:
+# 
+# sala    = "ED. CNC"
+# nivel1  = "05º ANDAR"
+# nivel2  = "SALA Nº 501D"
+# nivel3 != "NA" ("SETOR DE SUPORTE ELETRÔNICO CSU/DTI")
+#
+# mpi_teste <- filter(mpi, sala == "ED. CNC")
+#
+# 3.695 Registros
+# 
+mpi <- mpi %>% mutate(nivel1 = if_else(sala == "ED. CNC" & !is.na(nivel3),
+nivel3,
+nivel1),
+nivel3 = if_else(sala == "ED. CNC" &
+!is.na(nivel3),
+TRUE,
+nivel3))
+
+{Código R – Atualizando valores - campo “sala”}
+#
+# 'SE' sala    = "ED. CNC" &
+#      nivel2 != “NA” 
+# LOGO sala = nivel2 &
+#      nivel2  = “NA”
+# 
+# Exemplo:
+#
+# sala   = "ED. CNC"
+# nível2 = "SALA Nº 1507A" ~ sala = “SL. Nº 1507A"
+# 
+mpi <- mpi %>% mutate(sala = if_else(sala == "ED. CNC" & !is.na(nivel2),
+str_replace_all(nivel2, "SALA Nº", 
+"SL. Nº"),
+sala),
+nivel2 = if_else(nivel3 == TRUE,
+                                       NA_character_,
+                                       nivel2))
+#
+# mpi[which(mpi$nivel3 == TRUE),]$nivel2 <- NA_character_
+#
+
+
+{Código R – Excluindo valores - campo “nivel3”}
+# 
+mpi <- mpi %>% select(-nivel3)
+#
+# mpi$nivel3 <- NULL
+#
+# mpi_teste <- filter(mpi, sala == "ED. CNC")
+#
+# 3 Registros
+#
+
+	O campo “sala” deve ser transformado para que esteja no padrão “SL. Nº nnnX”. No gráfico abaixo o campo está com a nomenclatura “SL.nnnX” (sem espaços e sem o conjunto de caracteres “Nº”):
+
+
+{Código R – Atualizando valores - campo “sala” }
+#
+# mpi_teste <- mpi %>% filter(grepl("^(SL\\.)([^[:space:]])", sala))
+#
+# 326 Registros
+#
+mpi <- mpi %>% mutate(sala = gsub("^(SL\\.)([^[:space:]])","\\1 Nº \\2",
+sala))
+#
+
+	No gráfico abaixo o campo “sala” está fora do padrão e com a descrição do setor concatenado. Essa descrição não foi afetada pela transformação quando o campo foi separado em níveis. Vamos separar a descrição do setor do campo e padronizá-lo. Nesta transformação o campo “nível1” receberá a descrição do setor:
+
+{Código R – Atualizando valores - campo “sala” }
+#
+# 'SE' sala  == "SALA 604B1 RECEPÇÃO DA TI" LOGO
+#      sala   = "SL. Nº 604B1" &
+#      nivel1 = "RECEPÇÃO DO DEPART. DE TECNOLOGIA DA INFORMAÇÃO"
+#      nivel2 = NA
+#
+# mpi_teste <- mpi %>% filter(sala =="SALA 604B1 RECEPÇÃO DA TI")
+# 
+# 11 Registros
+# 
+mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
+                                       "RECEPÇÃO DO DEPART. DE TECNOLOGIA 
+DA INFORMAÇÃO",
+                                       nivel1),
+                      nivel2 = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
+                                       NA_character_,
+                                       nivel2),
+                      sala = if_else(sala == "SALA 604B1 RECEPÇÃO DA TI",
+                                     "SL. Nº 604B1",
+                                     sala))
+#
+
+Continuaremos com as transformações do campo “sala” para o padrão “SL. Nº nnnX”, transformando o campo que está com a nomenclatura “SL. nnnX” (com um espaço e sem o conjunto de caracteres “Nº”):
+
+
+
+
+
+
+
+
+
+{Código R – Atualizando valores - campo “sala” }
+#
+# mpi_teste <- mpi %>% filter(grepl("^(SL\\.)([[:space:]])([^\\Nº])",
+#						sala))
+#
+# 3.576 Registros
+#
+mpi <- mpi %>% mutate(sala = gsub("^(SL\\.)([[:space:]])([^\\Nº])",
+"SL. Nº\\2\\3", sala))
+#
+
+A descrição do campo “nivelSuperior” para as transferências enviadas para o andar térreo, na maioria dos casos, está como “ED. CNC, ANDAR TÉRREO”. Faz-se necessário padronizar algumas movimentações que foram feitas com a nomeclatura anterior. Veja na figura abaixo:
+
+
+
+
+{Código R – Atualizando valores - campo “sala” }
+# 
+# nivelSuperior = CNC - TERREO. // sala = SL. Nº 001 - PROTOCOLO
+# 
+#
+# 'SE'   nivelSuperior == "CNC - TERREO." 
+# ‘LOGO’ sala   = "SL. Nº 001" &
+#	   nivel1 = "PROTOCOLO GERAL ATENDIMENTO AO PUBLICO - DA"	
+#        nivelSuperior = “CNC, ANDAR TÉRREO”
+#
+# mpi_teste <- mpi %>% filter(nivelSuperior == "CNC - TERREO.")
+#
+# 22 Registros
+# 
+mpi <- mpi %>% mutate(sala = if_else(grepl("CNC - TERREO.", nivelSuperior),
+"SL. Nº 001",
+sala),
+nivel1 = if_else(grepl("CNC - TERREO.",
+nivelSuperior),
+"PROTOCOLO GERAL ATENDIMENTO AO
+ PUBLICO - DA",
+                                       nivel1),
+nivelSuperior = if_else(grepl("CNC - TERREO.",
+nivelSuperior),
+"CNC, ANDAR TÉRREO",
+nivelSuperior))
+#
+	O Edifício CNC é composto por 18 andares. Alguns bens permanentes são dispostos nos “rolls” desses andares sob a responsabilidade de um gestor do Setor de Serviços Gerais. Antes da padronização no Sistema Cosmos da nomenclatura das salas os bens foram dispostos nesse ambiente e movimentados para os gestores responsáveis. Conforme apresentado no gráfico abaixo será necessário realizar a padronização do campo “sala”, trocando sua posição com a posição do campo “nível1”. Observe que o campo “nivelSuperior” também está fora do padrão e  faremos a sua padronização em seguida.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{Código R – Atualizando valores - campo “sala” (ROLL) }
+#
+# 'SE' nivel1 = "ROLL"
+# LOGO sala   = nivel1 &
+#     nivel1  = sala
+# 
+# mpi_teste <- mpi %>% filter(nivel1 == "ROLL")
+#
+# 19 Registros
+# 
+mpi_row <- row.names(mpi[which(mpi$nivel1 == "ROLL"),])
+# 
+# mpi_row <- rownames(subset(mpi, mpi$nivel1 == "ROLL"))
+#
+for (rowNames in mpi_row) {
+  mpi[rowNames,"nivel2"] = mpi[rowNames,"sala"]
+  mpi[rowNames,"sala"] = mpi[rowNames,"nivel1"]
+  mpi[rowNames,"nivel1"] = mpi[rowNames,"nivel2"]
+  mpi[rowNames,"nivel2"] = NA_character_
+} 
+# 
+# Outra forma de realizar o mesmo procedimento acima: 
+# 
+# (CNC,)(17º ANDAR)
+# 
+# x <- 'CNC, 17º ANDAR'
+# 
+# str_sub(x, gregexpr(pattern = ",", x, fixed = TRUE)[[1]][1]+2,
+#		str_length(x))
+#
+# [1] "17º ANDAR"
+# 
+# mpi <- mpi %>% mutate(sala = if_else(nivel1 == "ROLL",
+#								nivel1,
+#                                            	sala),
+#				nivel1 = if_else(grepl("ROLL", sala, fixed = TRUE),
+#						str_sub(nivelSuperior, 
+#							gregexpr(pattern = ",",
+#								nivelSuperior, 
+#								fixed = TRUE)[[1]][1]+2,
+#								str_length(nivelSuperior)),
+#						nivel1))
+#
+
+	Faremos uma padronização do campo “sala” quando esse se referir às COPAS. Inicialmente, por um erro de digitação, a descrição da copa do 13º Andar foi informada faltando um dígito (COPA 1 ao invés de COPA 13). Inicialmente faremos este ajuste:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{Código R – Atualizando valores - campo “sala” (COPA 1)}
+#
+# 'SE' sala = "COPA 1" 
+# LOGO sala = "COPA 13"
+# 
+# mpi_teste <- mpi %>% filter(sala == "COPA 1")
+#
+# 11 Registros
+#
+mpi$sala[mpi$sala == "COPA 1"] <- "COPA 13"
+#
+mpi[which(mpi$sala == "COPA 13"),]$nivel2 <- NA_character_
+#
+
+	O campo “sala” contém a descrição “SANITÁRIOS E COPA” indicando que determinados bens foram transferidos/alocados em certos andares e em suas respectivas copas/sanitários. É possível verificar o andar pelo campo “nivelSuperior”. No entanto devemos atualizar o campo “sala” e o campo “nivel1” para que o padrão adotado seja seguido.
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{Código R – 
+
+Atualizando valores - campo “sala” (SANITÁRIOS E COPA)}
+# 
+# 'SE' sala = "SANITÁRIOS E COPA"
+# LOGO sala =  COPA + ANDAR &
+#    nivel1 = "nnº ANDAR"
+# 
+# nivelSuperior = "CNC, nnº ANDAR"
+# 
+# mpi_teste <- mpi %>% filter(sala == "SANITÁRIOS E COPA")
+#
+# 440 Registros
+# 
+mpi <- mpi %>% mutate(nivel1 = if_else(sala == "SANITÁRIOS E COPA",
+                                       gsub("^(CNC, )", "\\2",
+nivelSuperior),
+                                       nivel1),
+                      sala = if_else(sala == "SANITÁRIOS E COPA",
+                                     paste("COPA", 
+gsub("^([0-9]*)(\\º)(\\s)([A-Z]*)", 
+"\\1", nivel1), sep = " "),
+sala))
+# 
+
+	O campo “nivelSuperior” também contém a descrição “SANITÁRIOS E COPA”; o campo “nivel1” não possui nenhuma referência à hierarquia criada quando da divisão do campo “sala” em três níveis. Será necessário fazer a padronização desses campos:
+
+
+
+
+
+
+
+
+
+
+
+{Código R – Atualizando valores - campo “nivelSuperior” (SANITÁRIOS E COPA)}
+# 
+# 'SE' nivelSuperior = "SANITÁRIOS E COPA"
+# LOGO nivel1        = nnº ANDAR &
+#      nivelSuperior = CNC, nnº ANDAR 
+# 
+# mpi_teste <- mpi %>% filter(nivelSuperior == "SANITÁRIOS E COPA")
+#
+# 14 Registros
+# 
+mpi_teste <- mpi %>% mutate(nivel1 = if_else(nivelSuperior == "SANITÁRIOS E
+COPA",
+paste(gsub("^([A-Z]*)(\\s)([0-9]*)",
+"\\3", sala),
+"º ANDAR", sep = ""),
+nivel1),
+nivelSuperior = if_else(nivelSuperior ==
+"SANITÁRIOS E COPA",
+paste("CNC, ",gsub("^([A-Z]*)(\\s)([0-9]*)", "\\3", sala), "º ANDAR"),
+nivelSuperior))
+# 
+# x <- "COPA 18"
+# gsub("^([A-Z]*)(\\s)([0-9]*)", "\\3", x)
+# 
+# [1] "18"
+#
+
+	Na próxima figura podemos identificar as três (03) próximas transformações que faremos a seguir: os campos “sala”, “nivel1” e “nivelSuperior” serão padronizados conforme temos feito até aqui. 
+	Começaremos com o campo “nivelSuperior” que está descrito como “CNC, nnºAND.”, transformando o seu conteúdo para o padrão “CNC, nnº ANDAR”. Em seguida transformaremos os campos “nivel1”  e “sala”.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+A transformação do campo “nivelSuperior” atingirá 9.328 registros.
+
+{Código R – Atualizando valores - campo “nivelSuperior” (CNC, nºAND.)}
+# 
+# 'SE' nivelSuperior = "CNC, nnºAND." 
+# LOGO nivelSuperior = "CNC, nnº ANDAR"
+#
+# mpi_teste <- mpi %>% filter(grepl("([º])(AND)(\\.)+", nivelSuperior))
+#
+# 9.328 Registros
+#
+# nivelSuperior <- "CNC, 03ºAND."
+#
+# gsub("([º])(AND)(\\.)+","\\1 \\2AR", nivelSuperior)
+#
+# [1] "CNC, 03º ANDAR"
+# 
+mpi <- mpi %>% mutate(nivelSuperior = gsub("([º])(AND)(\\.)+","\\1 \\2AR", 
+nivelSuperior))
+# 
+
+	Em seguida faremos as transformações do campo “nivel1”. Observe no gráfico abaixo o resultado da transformação anterior do campo “nivelSuperior” e em destaque algumas das que deverão ser feitas:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{Código R – Atualizando valores - campo “nivel1” (nnº ANDAR)}
+# 
+# 'SE' nivel1 = "nnºAND."
+# LOGO nivel1 = nnº ANDAR &
+# 
+# mpi_teste <- mpi %>% filter(grepl("^([0-9]*\\º)([A-Z]*)(\\.)", nivel1))
+#
+# 489 Registros
+#
+# x <- "02ºAND."
+# gsub("^([0-9]*\\º)([A-Z]*)(\\.)", "\\1 \\2AR", x)
+# 
+# [1] "02º ANDAR"
+# 
+mpi <- mpi %>% mutate(nivel1 = gsub("^([0-9]*\\º)([A-Z]*)(\\.)", 
+"\\1 \\2AR", nivel1))
+#
+
+	E agora as transformações do campo “sala”. Observe no gráfico abaixo o resultado da transformação anterior do campo “nivel1” e em destaque a próxima transformação que deverá ser feita:
+
+
+
+
+
+
+
+
+
+{Código R – Atualizando valores - campo “sala” (COPA nn)}
+# 
+# 'SE' sala = COPA nnºAND.
+# LOGO sala = COPA nn
+# 
+# mpi_teste <- mpi %>% filter(grepl("(\\º[A-Z]*\\.)", sala))
+#
+# 440 Registros
+#
+# x <- "COPA 02ºAND."
+#
+# gsub("(\\º[A-Z]*\\.)", "\\2", x)
+# 
+# [1] "COPA 02"
+# 
+mpi <- mpi %>% mutate(sala = gsub("(\\º[A-Z]*\\.)", "\\2", sala))
+#
+
+	Abaixo podemos conferir o resultado das três (3) últimas transformações:	
+	O campo “nivelSuperior”, como pode ser observado no gráfico abaixo, não está normalizado. O padrão definido é “CNC, nnº ANDAR”. No entanto existem descrições fora deste padrão. A próxima transformação realizará essa mudança no campo “nivelSuperior”.
+
+{Código R – Atualizando o campo “nivelSuperior” (CNC, nnº ANDAR)}
+# 
+# 'SE' nivelSuperior = "ED. CNC, nnº ANDAR"
+# LOGO nivelSuperior = "CNC, nnº ANDAR"
+# 
+# mpi_teste <- mpi %>% filter(grepl("^(ED. CNC. )", nivelSuperior))
+#
+# 3.631 Registros
+#
+# x <- "ED. CNC, 12º ANDAR"
+#
+# gsub("^(ED. CNC\\,\\s)", "CNC, \\2", x)
+# 
+# [1] "CNC, 12º ANDAR"
+# 
+mpi <- mpi %>% mutate(nivelSuperior = gsub("^(ED. CNC. )", "CNC, \\2",
+nivelSuperior))
+#
+
+Nossa próxima transformação será feita em um nível que foi criado na hierarquia de salas cuja descrição é “MESAS PARA IMPRESSORAS DA SIMPRESS”. Essa inclusão foi feita para atender uma demanda pontual mas não poderá ser usada como está. Veja abaixo no gráfico o nível criado e o seu respectivo nível superior: 
+
+
+
+
+
+
+
+
+
+
+	Podemos observar no próximo gráfico como estão distribuídas as movimentações patrimoniais de bens que foram feitas utilizando a nova hierarquia. Essas movimentações também terão que ser transformadas para serem normalizadas (padronizadas) com  as alterações foram feitas até aqui.
+
+
+
+
+
+
+
+
+
+
+{Código R – Atualizando vários campos}
+# 
+# 'SE' sala = "MESAS PARA IMPRESSORAS DA SIMPRESS"
+# LOGO sala = "SL. Nº 604B" &
+#    nivel1 =  "MESAS PARA IMPRESSORAS DA SIMPRESS" &
+#    nivelSuperior = "CNC, 06º ANDAR"
+# 
+# mpi_teste <- mpi %>% filter(grepl("SL. 0604B", nivelSuperior))
+#
+# 10 Registros
+# 
+mpi_row <- row.names(mpi[which(mpi$sala == 
+"MESAS PARA IMPRESSORAS DA SIMPRESS"),])
+#
+for (rowNames in mpi_row) {
+mpi[rowNames,"sala"]   = "SL. Nº 604B"
+mpi[rowNames,"nivel1"] = "ASS. DTI - DP. TEC. DA INFORMAÇÃO"
+mpi[rowNames,"nivel2"] = "MESAS PARA IMPRESSORAS DA SIMPRESS"
+mpi[rowNames,"nivelSuperior"] = "CNC, 06º ANDAR"
+}
+# 
+# Outra forma de realizar o mesmo procedimento acima:
+#  
+# mpi <- mpi %>% mutate(sala = if_else(nivelSuperior == 
+#				"SL. 0604B, ASS. DTI - DP. TEC. DA INFORMAÇÃO",
+#					"SL. Nº 604B",
+#					sala),
+#				nivel1 = if_else(nivelSuperior == 
+#				"SL. 0604B, ASS. DTI - DP. TEC. DA INFORMAÇÃO",
+#					"ASS. DTI - DP. TEC. DA INFORMAÇÃO",
+#					nivel2),
+#				nivel2 = if_else(nivelSuperior == 
+#				"SL. 0604B, ASS. DTI - DP. TEC. DA INFORMAÇÃO",
+#					"MESAS PARA IMPRESSORAS DA SIMPRESS",
+#					nivel2),
+#				nivelSuperior = if_else(nivelSuperior == 
+#				"SL. 0604B, ASS. DTI - DP. TEC. DA INFORMAÇÃO",
+#					"CNC, 06º ANDAR",
+#					nivelSuperior))
+#
+
+
+
+	Em nosso conjunto de dados existem descrição de campos nas hierarquias que hora foram escritos com acentos e hora sem. Um exemplo encontrado foi no campo “nivel1”. São quatro registros que estão descritos sem assento (“ANDAR TERREO”) enquanto existe outro registro com acento. Considerando ser apenas um campo faremos a alteração de uma forma diferente das transformações anteriores: indexação lógica.
+
+{Código R – Atualizando valores - campo “nivel1” }
+# 
+# 'SE' nivel1 = "ANDAR TERREO" 
+# LOGO nivel1 = "ANDAR TÉRREO"
+# 
+# mpi_teste <- mpi %>% filter(nivel1 == "ANDAR TERREO")
+#
+# 04 Registros
+#
+mpi$nivel1[mpi$nivel1 == "ANDAR TERREO"] <- "ANDAR TÉRREO" 
+# 
+# mpi$nivel1[which(mpi$nivel1 == "ANDAR TERREO")] <- 
+#						"ANDAR TÉRREO"
+#
+# mpi[[5]][mpi$nivel1 == "ANDAR TÉRREO TESTE"] <- 
+#					"ANDAR TÉRREO"
+#
+# mpi[mpi_teste$nivel1 == "ANDAR TERREO",][5] <- "ANDAR TÉRREO"
+#
+# mpi <- mpi %>% mutate(nivel1 = if_else(nivel1 == "ANDAR TERREO",
+#                                        "ANDAR TÉRREO",
+#                                        nivel1))
+#
+# A função which() converte um índice de linha TRUE/FALSE em números 
+# de linha
+#
+
+	No campo “sala” existem dois tipos de escrita para a mesma descrição da sala. Algumas vezes foram escritas com  ZERO antes do número da sala (0601, por exemplo), e na maioria das vezes sem o ZERO. Na próxima transformação o ZERO será retirado para normalização dos dados do “dataset”.
+
+
+
+
+
+
+
+
+{Código R – Atualizando valores - campo “sala” }
+#
+# 'SE' sala = "SL. Nº 0603"
+# LOGO sala = "SL. Nº 603"
+# 
+# mpi_teste <- mpi %>% filter(grepl("^(SL\\.\\s)(Nº\\s)(0)([^0])", sala))
+#
+# 872 Registros 
+# 
+# x <- "SL. Nº 0603"
+# gsub("^(SL\\.\\s)(Nº\\s)(0)([^0])","\\1\\2\\4", x)
+#
+# [1] "SL. Nº 603"
+#   
+mpi <- mpi %>% mutate(sala = if_else(grepl("^(SL\\.\\s)(Nº\\s)(0)([^0])",
+sala),
+gsub("^(SL\\.\\s)(Nº\\s)(0)([^0])",
+"\\1\\2\\4", sala),
+sala))
+#
+# De forma "manual", um por um...
+# 
+# mpi$sala[mpi$sala == "0602"]  <- "602"      
+# mpi$sala[mpi$sala == "0101C"] <- "101C"
+# mpi$sala[mpi$sala == "0603B"] <- "603B"
+# (...)
+#
+
+Nas duas próximas transformações faremos a padronização do campo “nivelSuperior”. 
+Inicialmente a hierarquia de alguns andares e suas salas estavam dentro de duas hierarquias: “PGT” como nível superior, em segundo nível as salas com seus respectivos números e todas as copas em uma única UL (local CNC). Essa estrutura, inicialmente, era suficiente para que as transferências patrimoniais fossem feitas. No entanto, com o passar do tempo, foi necessário criar uma estrutura hierárquica mais detalhada a fim de melhorar o controle e facilitar a distribuição dos bens. Observe no próximo gráfico como estavam dispostas as hierarquias das salas:
+
+
+{Código R – Atualizando valores - campo “nivelSuperior” }
+# 
+# 'SE' nivelSuperior = "PGT" &
+#      salas = ("SL. Nº 401C", "SL. Nº 801", "SL. Nº 807", (...) )
+#
+# LOGO nivelSuperior = "CNC, nnº ANDAR"
+# 
+# mpi_teste <- mpi %>% filter(nivelSuperior == "PGT")
+#
+# 401 Registros 
+#
+varSalas <- c("SL. Nº 401C", "SL. Nº 801", "SL. Nº 807", "SL. Nº 1005",
+"SL. Nº 1005A", "SL. Nº 1007", "SL. Nº 1007A", "SL. Nº 
+1107", "SL. Nº 1107A", "SL. Nº 1108", "SL. Nº 1108A",
+"SL. Nº 1301", "SL. Nº 1301A", "SL. Nº 1501A", "SL. Nº
+1506", "SL. Nº 0002", "SL. Nº 00002", "SL. Nº 00004",
+"ED. CNC", "CNC - TERREO.")
+#
+andares  <- c("CNC, 04º ANDAR", "CNC, 08º ANDAR", "CNC, 08º ANDAR", 
+"CNC, 10º ANDAR", "CNC, 10º ANDAR", "CNC, 10º ANDAR", 
+"CNC, 10º ANDAR", "CNC, 11º ANDAR", "CNC, 11º ANDAR",
+"CNC, 11º ANDAR", "CNC, 11º ANDAR", "CNC, 13º ANDAR",
+"CNC, 13º ANDAR", "CNC, 15º ANDAR", "CNC, 15º ANDAR",
+"CNC, ANDAR TÉRREO", "CNC, ANDAR TÉRREO", "CNC, ANDAR
+TÉRREO", "CNC, ANDAR TÉRREO", "CNC, ANDAR TÉRREO")
+# 
+mpi <- mpi %>% mutate(nivelSuperior = if_else(nivelSuperior == "PGT",
+if_else(sala %in% varSalas,
+andares[varSalas %>% 
+match(x = sala)],
+nivelSuperior),
+nivelSuperior))
+# 
+# match_ <- "SL. Nº 401C"
+# 
+# [1] "CNC, 04º ANDAR"
+# 
+# andares[varSalas %>% match(x = match_)]  
+# 
+# match_ %in% varSalas          # Retorna TRUE
+# 
+# [1] TRUE
+#
+
+Em seguida continuaremos com a padronização do campo “nivelSuperior” para a hierarquia das copas. Observe no próximo gráfico como estavam dispostas as hierarquias:
+
+{Código R – Atualizando valores - campo “sala” }
+# 
+# 'SE' nivelSuperior = "PGT" & sala = "CNC"
+# LOGO sala   <- COPA + nn &
+#      nivelSuperior <- "CNC, nnº ANDAR"
+# 
+# nivel1 = "nnº ANDAR"
+# 
+# mpi_teste <- mpi %>% filter(sala == "CNC" & nivelSuperior == "PGT")
+#
+# 49 Registros
+#  
+mpi <- mpi %>% mutate(nivelSuperior = if_else((sala == "CNC" &
+nivelSuperior == "PGT"),
+paste("CNC, ",gsub("^([0-9]*)(\\º)(\\s)([A-
+Z]*)", "\\1", nivel1), "º ANDAR", 
+sep = ""),
+nivelSuperior),
+                      sala = if_else((sala == "CNC"),
+paste("COPA", gsub("^([0-9]*)(\\º)(\\s)([A-
+Z]*)", "\\1", nivel1), sep = " "),
+sala))
+# 
+# x <- "10º ANDAR"
+# 
+# paste("CNC, ",gsub("^([0-9]*)(\\º)(\\s)([A-Z]*)", "\\1", x), "º ANDAR", sep = "")
+#
+# [1] "CNC, 10º ANDAR"
+#
+# paste("COPA", gsub("^([0-9]*)(\\º)(\\s)([A-Z]*)", "\\1", x), sep = " ")
+#
+# [1] "10"
+#
+
+
+
+
+{Código R – Atualizando valores - campo “nivel1” }
+#
+# 'SE' nivel1 = "NA" & nivelSuperior = "CNC, "
+# LOGO nivel1 = "nnº ANDAR"
+# 
+# nivelSuperior <- "CNC, nnº ANDAR"
+# 
+# mpi_teste <- mpi %>% filter(is.na(nivel1) & grepl("CNC\\,\\s",
+#						nivelSuperior))
+#
+# 93 Registros
+#
+mpi <- mpi %>% mutate(sala = if_else(grepl("AREA TECNICA", sala, 
+fixed = TRUE),
+str_replace_all(sala, "AREA TECNICA",
+"ÁREA TÉCNICA"),
+sala),
+nivel1 = if_else(is.na(nivel1) 
+& grepl("CNC\\,\\s", nivelSuperior),
+str_sub(nivelSuperior, start = 6),
+nivel1))
+#
+
+
+ 
+4. Análise e Exploração dos Dados
+
+Agora realizaremos a análise e exploração dos dados, dando continuidade, se for o caso, ao processo iterativo (fases sucessivas) de limpeza, padronização e apresentação dos dados.
+Faremos a análise das transformações com o objetivo explorar os dados. Essa tarefa é chamada de análise exploratória de dados (EDA, em inglês). Esse é um ciclo iterativo. Muitas transformações já foram realizadas a partir de análises que foram feitas neste tópico. Os gráficos apresentam os dados após as transformações que foram realizadas quando identificados os problemas.
+A análise exploratória (EDA) não é um processo formal com um conjunto estrito de regras. Durante as fases iniciais da EDA, à medida em que a exploração acontece, são geradas novas perguntas e questões sobre os dados. Então o processo de transformação poderá ser realizado uma vez mais, por isso é um processo iterativo.
+O gráfico de dispersão abaixo apresenta as movimentações de bens por ano e por salas (salas que receberam mais de 100 bens patrimoniais no período em análise).
+Esse gráfico apresenta os dados após as transformações, limpeza e padronização que foram realizadas anteriormente (veja o gráfico nº 13). Pode-se observar que algumas salas foram alvos de uma grande quantidade de movimentações de bens. Em comparação ao gráfico anterior este próximo gráfico está com uma apresentação mais limpa da descrição das salas.
+Figura 35 - Movimentações de Bens por Sala – Ggplot – Rstudio
+
+Podemos observe que as salas sob a responsabilidade do Setor de Patrimônio receberam a maior quantidade de movimentações de bens (401SS e 402SS). No entanto, pode-se observar que outras salas também receberam muitas movimentações. Isso será alvo de análise para que seja verificado se existem movimentação cadastrada pelos gestores ainda por serem excluídas.
+O próximo gráfico apresenta os bens movimentados por responsável destino das movimentações. Esse gráfico foi apresentado na figura nº 03, antes da limpeza e padronização dos dados. 
+Figura 36 – Responsável x Movimentações de Bens – RStudio 
+
+Em comparação com o gráfico apresentado anteriormente (figura nº 03) os valores apresentados aparentemente se mostram compatíveis com os atendimentos registrados pelos servidores do Setor de Patrimônio mas, como verificado no gráfico anterior, será necessária uma análise detalhada para verificação.
+Ressaltamos que após a fase de limpeza e padronização dos dados, quando foram excluídas as movimentações automáticas, movimentações de distribuição de bens e outras tantas cadastradas pelos gestores do Setor de Patrimônio, restou 12.282 (doze mil duzentos e oitenta e dois) registros de movimentações de bens realizadas pelos servidores do Setor de Patrimônio.
+Continuando com a análises observe abaixo o gráfico com as movimentações anuais das movimentações de bens versus os meses: 
+
+
+
+
+
+	Dentre as diversas observações possíveis podemos destacar que o mês de outubro de 2019 apresentou a maior quantidade de bens movimentados no período analisado (1.408 bens). Verificaremos se nos dados daquele mês ainda existe algum tipo de movimentação que deve ser excluída do conjunto de dados. Observe abaixo o gráfico do ano de 2019 com destaque dos totais de bens movimentados em cada mês:
+Figura 38 - Séries Temporais - Ano: 2019 – ggplot / RStudio
+
+Vale ressaltar que após uma análise do gráfico e dos dados junto aos gestores do Setor de Patrimônio, foi verificado que a queda abrupta das movimentações patrimoniais a partir de outubro de 2018 e de 2019 deu-se por consequência do inventário anual. Foi verificado que durante o processo de inventário não é permitido realizar movimentações de bens. São realizadas somente movimentações pontuais de ajustes e de outras movimentações inadiáveis.
+O próximo gráfico foi criado no MS-Power BI® com a mesma representação de dados do gráfico nº 37 (todos os meses dos anos 2017 a 2020):
+
+	Abaixo a tabela de dados usada para a criação dos últimos três gráficos:
+	Nota sobre a tabela acima: os valores ausentes nos anos de 2017 e 2020 são, respectivamente, por causa da data de entrada em produção do Sistema Cosmos no MPT e do último período de análise proposta neste projeto.
+	Continuando com a análise do mês de outubro do ano de 2019, analisaremos os próximos gráficos construídos com o aplicativo QlikView®. 
+No gráfico abaixo estão representados o total de movimentações patrimoniais internas  cadastradas (191), o total de bens movimentados por cada uma dessas MPI´s (1.408) e no eixo “x” os servidores responsáveis pelo cadastro (4):
+
+	Aplicado filtro para apresentar no próximo gráfico os dois servidores com o maior número de movimentações de bens cadastradas em outubro de 2019 (1.196):
+Apresentaremos em seguida os dados filtrados em um gráfico de pizza detalhado pelo campo “nivelSuperior” sobre os dados do último gráfico apresentado:
+
+	observar que houve uma grande movimentação de bens patrimoniais para alguns andares (filtro pelo campo: nivelSuperior). Ainda não podemos afirmar que são movimentações que foram cadastradas para ajustes ou se são realmente movimentações feitas a partir de solicitações de ordens de serviço atendidas pelo Setor de Patrimônio. Vamos fazer a análise dos dois próximos gráficos e vejamos se conseguimos chegar a alguma conclusão.
+	No próximo gráfico está representado as movimentações pela sala de destino, dando continuidade às verificações: 
+
+
+
+
+
+
+
+
+
+Analisando o último gráfico apresentado foi possível verificar quais foram as salas que receberam o maior número de movimentações de bens patrimoniais. Foi possível concluir que, considerando a mudança na administração com a eleição e posse do Exmo. Sr. Procurador Geral do Trabalho para o biênio 2020/2021, a maioria das movimentações apresentadas se referem às mudanças das chefias de alguns setores. Foram efetuadas transferências patrimoniais entre os chefes (destituídos x empossados) e recolhimento de alguns bens ao depósito do Setor de Patrimônio. 
+Quando da mudança de chefia cabe ao Setor de Patrimônio a responsabilidade da conferência e transferência dos bens para a responsabilidade no novo chefe. Essas movimentações sempre são feitas a partir de solicitações de ordens de serviços encaminhadas ao setor e atendida por seus servidores. 
+O próximo gráfico será o último desta análise demonstrando quais foram os responsáveis que receberam a maior quantidade de movimentações de bens no mês de outubro de 2019 e, em seguida, a tabela com o filtro das movimentações patrimoniais referentes às mudanças das chefias, confirmando nossas afirmações e concluindo não haver movimentações que precisam ser excluídas ou ignoradas: 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Nota: Observe que todas as informações apresentadas se referem às movimentações patrimoniais cadastradas no mês de outubro de 2019, que foi alvo de avaliação por ser o mês que apresentou o maior número de movimentação de bens patrimoniais no período em análise. 
+	
+ 
+5. Apresentação dos Resultados
+Para nossos estudos, projeções e apresentação gráfica dos dados usaremos, além do Rstudio, três ferramentas disponíveis no mercado para nos auxiliar. A primeira delas é o Power BI®.
+“O Power BI  é um serviço de análise de negócios da Microsoft lançado a 24 de julho de 2015. O objetivo do Power BI é fornecer visualizações interativas e recursos de business intelligence com uma interface simples para que os usuários finais criem os seus próprios relatórios e dashboards” (Fonte: Wikipédia).
+
+A outra ferramenta é o QlikView®. “O Qlik [pronuncia-se "klik"] fornece uma plataforma de ponta a ponta que inclui integração de dados, inteligência de negócios orientada ao usuário e análises de conversação. A empresa de software foi fundada em 1993 em Lund, Suécia e agora está sediada em King of Prussia, Pensilvânia, Estados Unidos” (Traduzido do inglês: Wikipedia).
+E por último utilizaremos o aplicativo Tableau®. “O Tableau Software  é uma empresa americana, líder no desenvolvimento de softwares para visualização de dados. Fundada em janeiro de 2003 por Christian Chabot, Pat Hanrahan e Chris Stolte, em Mountain View (Califórnia), a empresa atualmente tem sua sede na cidade de Seattle, Washington, nos Estados Unidos focada em Business Intelligence (BI)” (Fonte: Wikipédia).
+
+Através dos gráficos apresentados até este ponto é possível inferir algumas das respostas às questões levantadas no início do projeto (item 1.2):
+1) Quais os servidores do Setor de Patrimônio com a maior quantidade de movimentações patrimoniais cadastradas no período em análise?
+2) Quais foram as movimentações patrimoniais que movimentaram o maior número de bens?
+3) Quais os setores (ou salas) que mais movimentaram (receberam ou devolveram) bens patrimoniais?
+4) Quais os períodos que apresentaram o maior número de movimentações patrimoniais?
+5) Quais os bens que sofreram o maior número de movimentações no período de análise dos dados?
+	Passemos para a apresentação dos resultados através de vários gráficos criados com as ferramentas propostas. 
+Antes de iniciarmos apresentaremos o gráfico com o total de MPI’s cadastras e com o total de bens movimentados em todo o período analisado:
+5.1. Servidores do setor de patrimônio com a maior quantidade de movimentações patrimoniais cadastradas no período em análise
+	São diversos gráficos que podemos utilizar para apresentar os resultados solicitados. É possível apresentar as movimentações patrimoniais (MPI’s) cadastradas, bem como o total de bens movimentados por essas MPI’s. 
+Lembramos que as movimentações patrimoniais são cadastradas pelos servidores do Setor de Patrimônio do Departamento de Logística da Procuradoria Geral do Trabalho em atendimento às ordens de serviço encaminhadas ao setor.
+	Dentre vários gráficos que apresentaremos a primeiramente será um gráfico de linhas do Power-BI®, contemplando os dados das MPI’s cadastras e o total de bens movimentados (por responsável pelo cadastro/movimentação) no período analisado:
+
+
+	Mais detalhes em um gráfico de barras empilhadas com o percentual total de bens movimentados por cada servidor do Setor de Patrimônio por ano:
+
+
+Fazendo um “Drill-Down” para verificar o acumulado por mês, filtrado pelo ano de 2019:
+
+E quanto ao percentual acumulado no período em análise? Com um gráfico do Rstudio podemos agrupar e contar o total de movimentações cadastradas por servidor, apresentando o percentual correspondente:
+
+
+Para finalizar exibindo o último gráfico em resposta à questão levantada: quais os servidores com a maior quantidade de movimentações patrimoniais cadastradas?
+
+
+5.2. Movimentações patrimoniais cadastradas no período em análise que movimentaram o maior número de bens patrimoniais
+Responderemos a esta questão iniciando com  a apresentação de um gráfico de rosca do Power-BI® com a quantidade de MPI’s cadastradas por ano:
+
+
+Agora apresentaremos as TOP 10 movimentações com o maior número de bens movimentados através de um gráfico de barras do Rstudio:
+
+Através do gráfico apresentado é possível verificar quais são as TOP 10  MPI’s que movimentaram mais bens em todo o período de nossa análise. Podemos filtrar os dados com informações detalhadas dessas movimentações.
+Para quais salas foram movimentados os bens considerando as TOP 5 Movimentações Patrimoniais Internas?
+
+
+Para quais responsáveis foram movimentados os bens apenas considerando as TOP 5 MPI’s?
+
+
+ 
+Tabela 8 – Tabela Resumo das TOP 5 MPI’s Cadastradas com maior nº de Bens Movimentados
+
+As MPI’s com o maior número de bens movimentados são aquelas referente às mudanças de chefia dos respectivos setores. São movimentações que foram realizadas quando da mudança na administração geral da PGT (mudança do Procurador Geral do Trabalho).
+Observe no gráfico abaixo que apenas cinco (5) MPI’s movimentaram a maioria dos bens, ou seja, apenas 5 (cinco) MPI’s geraram as TOP 5 movimentações que movimentaram a maior quantidade de bens patrimoniais no período analisado.
+
+
+
+
+
+
+
+
+5.3. Salas  (ou setores) que no período em análise mais solicitaram (ou foram alvos de) movimentações patrimoniais (MPI’s cadastradas)
+
+No item anterior (5.2) foram analisadas as MPI’s que movimentaram o maior número de bens patrimoniais no período analisado. Apesar da quantidade de bens movimentados, foram poucas as MPI’s cadastradas para a movimentação desses bens. Os gráficos apresentados indicaram quais foram os responsáveis (de destino) e para quais salas os bens foram movimentados. 
+Agora vamos verificar para quais salas (ou responsáveis destino das MPI’s) foram cadastradas a maior quantidade de Movimentações Patrimoniais Internas. O gráfico de pizza abaixo está apresentando apenas as salas para as quais foram cadastrados mais de 30 (trinta) MPI’s. As MPI’s cadastradas, em geral, foram realizadas em atendimento às ordens de serviços encaminhadas ao Setor de Patrimônio.
+
+
+No gráfico abaixo filtramos os dados selecionando a “fatia” da “SL. Nº 401SS” e na tabela ao lado do gráfico está representado os responsáveis de destino das movimentações (a sala, com diversos bens movimentados para diversos responsáveis de destino desses bens). Observe o próximo gráfico:
+
+
+No próximo gráfico filtramos as MPI’s pelo responsável de destino das movimentações, neste caso o gestor Sr. LCCS. No gráfico de pizza apresentado estão destacados a quantidade de MPI’s cadastradas. Observe que as salas que não estão sob a responsabilidade do gestor estão zeradas e não aparecem as salas com menos de 30 MPI’s cadastradas (o mesmo filtro da figura 056): 
+
+ 
+Figura 58 – Responsável Destino (LCSS) x Qtd de MPI’s Cadastradas (Destaque) – Gráfico Pizza – Power-BI®
+
+
+5.4. Períodos com maior número de movimentações patrimoniais cadastradas (MPI’s)
+Anteriormente foi apresentado a figura nº 39 (gráfico de linhas) com o total de bens movimentados por período (anos 2017 a 2020 e seus respectivos meses). Utilizaremos o mesmo tipo de gráfico para apresentar o total de MPI’s cadastradas no mesmo período conforme solicitado:
+
+
+O gráfico exibe o acumulado mensal de todas as MPI’s cadastradas em seus respectivos anos.  É possível verificar quais foram os meses com o maior número de movimentações patrimoniais em cada ano representado. Não há uma frequência ou mesmo um padrão nas movimentações cadastradas. Existem picos e quedas constantes no total de MPI’s cadastradas.
+Observe os destaques (filtros/pontos) no gráfico exibido abaixo. Os destaques são dos meses com maior número de MPI’s cadastradas (em cada ano):
+
+
+
+ 
+Figura 60 –Quantidade de MPI’s Cadastradas (Destaque por mês/ano) – Gráfico Pizza – Power-BI®
+
+No gráfico abaixo estão representados os dados do mês de junho de 2018 de todas as salas que receberam 03 (três) ou mais MPI’s:
+
+ 
+Figura 61 –Quantidade de MPI’s Cadastradas x Salas – Gráfico Pizza – Power-BI®
+
+Nota: As movimentações patrimoniais internas em destaque (40) foram realizadas em atendimento às ordens de serviços encaminhadas ao Setor de Patrimônio. O objetivo dessas movimentações foi o de transferir a responsabilidade dos bens para os servidores da sala 1501/1 (Apoio aos Coordenadores Regionais). Observe abaixo a tabela indicando quais foram os cedentes (chefes/cabeçalho) e os responsáveis de destino das movimentações (servidores do setor/primeira coluna):
+
+
+5.5. Bens que mais foram movimentados no período em análise
+As movimentações patrimoniais são realizadas pelos servidores do Setor de Patrimônio em atendimento às ordens de serviços encaminhadas através Sistema Atena da PGT.
+A movimentação dos bens patrimoniais, durante a sua vida útil, pode ser realizada entre os chefes dos setores com anuência do Setor de Patrimônio, que é responsável pelo cadastro das movimentações patrimoniais. Se algum bem apresentar defeito ele é recolhido ao Setor de Patrimônio para que seja solicitado o reparo em garantia, se for o caso. Se findo o tempo de garantia e o valor do reparo for maior que 50% do valor de mercado, o bem será recolhido (a pedido) ao depósito do Setor de Patrimônio para ser doado (desfazimento).
+Dito isso faremos algumas análises para responder ao que foi solicitado: quais os bens que mais foram movimentados em todo o período? 
+O gráfico de barras (colunas) do Rstudio a seguir apresenta os TOP 10 bens patrimoniais que mais sofreram movimentações (MPI’s cadastradas):
+
+O próximo gráfico de bolhas do aplicativo Tableau® contempla os 06 (seis) bens mais movimentados. Anotado em destaque estão os bens que foram movimentados em 09 (nove) MPI’s cadastradas em todo o período analisado: 
+
+No gráfico abaixo todos os bens que foram movimentados mais de 6 (seis) vezes (>= 6). Em destaque os bens que foram movimentados entre 07 e 09 vezes durante todo o período:
+
+Abaixo a tabela dos detalhes da movimentação do bem patrimonial nº 29851 (Cafeteira Elétrica em Aço Inox):
+O bem patrimonial apresentado foi transferido diversas vezes para o Setor de Patrimônio para manutenção, pois apresentou defeito. A última movimentação cadastrada foi do recolhimento do bem pois a garantia havia findado e o bem foi recolhido para desfazimento.
+Em seguida estão os mesmos dados da figura nº 63 em dois gráficos do Power BI®: gráfico de pizza e gráfico de barras:
+
+
+
+Os gráficos apresentados contemplam os bens que mais sofreram movimentações durante todo o período em análise. Para concluir podemos apresentar um gráfico que mostre qual (ou quais) o bem que mais foi movimentado em cada ano do período. 
+Abaixo está um gráfico gerado no aplicativo Tableau®, apresentando a contagem das movimentações dos bens. Em destaque no topo está o bem que mais foi movimentado em todo o período, destacado em seu respectivo ano de movimentação:
+
+
+Vamos complementar esta análise enumerando a quantidade de MPI’s cadastradas que movimentaram entre 1 e 39 itens. Observe no próximo gráfico que 2.754 (dois mil setecentos e cinquenta e quatro) MPI’s foram cadastradas para movimentar apenas um item patrimonial cada, enquanto no outro extremo apenas 2 (duas) MPI’s foram cadastradas para movimentar 39 itens cada:
+
+
+
+
+E quantas MPI’s foram cadastradas para movimentar 40 ou mais itens? Abaixo está o gráfico do Rstudio que representa esses dados: 2 (duas) MPI’s cadastradas movimentaram 40 itens, enquanto no extremo direito exibe apenas 1 (uma) MPI que foi cadastrada para movimentar 419 itens.
+
+ 
+6. Conclusão
+
+O presente projeto, como apresentação final do curso Pós-graduação Lato Sensu em Ciência de Dados e Big Data, foi elaborado com o objetivo processar os dados brutos das movimentações patrimoniais internas extraídas do Sistema de Gestão COSMOS da Procuradoria Geral do Trabalho. Os dados foram processados  a fim de gerar gráficos que pudessem apresentar observações sobre os trabalhos realizados pelos servidores do Setor de Patrimônio. 
+Foi possível avaliar e realizar melhorias em alguns processos durante a fase de limpeza e padronização dos dados. Durante a construção dos gráficos e da análise dos dados foi possível avaliar o desempenho dos servidores do Setor de Patrimônio no atendimento às ordens de serviço encaminhadas, bem como estabelecer métricas e parâmetros para um melhor acompanhamento das atividades do setor. 
+Para melhoria dos processos de atendimento e registro das movimentações foram propostas algumas alterações bem como inclusão de novos parâmetros para que possam ser obtidas informações mais assertivas e relevantes sobre os atendimentos efetivados bem como das movimentações registradas.
+Foi possível validar na prática os ensinamentos adquiridos durante o curso e, claro, como apenas alguns desses ensinamentos foram aplicados pode-se verificar que outros tipos de dados devem explorados para que outros processos sejam aplicados, tais como: análises temporais, análises preditivas e machine learning. 
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
